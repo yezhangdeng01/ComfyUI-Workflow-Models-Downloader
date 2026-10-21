@@ -2118,6 +2118,16 @@ FILENAME_TYPE_PATTERNS = [
     (r'^flux.*dev|flux.*schnell|^flux1|flux[-_]', 'Flux UNET', 'diffusion_models'),
     (r'^ae\.safetensors$', 'VAE (Flux)', 'vae'),
 
+    # MOSS-Image: a FLUX.2-latent single-stream DiT. The DiT checkpoints are
+    # diffusion models, the Qwen3.5 text encoder is a text encoder. Must sit
+    # BEFORE the generic ".safetensors -> checkpoints" fallback, which would
+    # otherwise send the 10 GB DiT to models/checkpoints/ where no loader
+    # ever looks for it.
+    (r'^moss[_-]?image', 'MOSS-Image DiT', 'diffusion_models'),
+
+    # Qwen-family text encoders (Qwen3.5 / Qwen3-VL / Qwen-Image encoders)
+    (r'^qwen.*(convrot|int8|bf16|fp8|w4a8|gptq)|qwen3\.5', 'Text Encoder (Qwen)', 'text_encoders'),
+
     # VAE (check before video models since video models can have _vae suffix)
     (r'_vae_|_vae\.|^vae[-_]|[-_]vae\.|vae[-_]?fp', 'VAE', 'vae'),
 
@@ -2250,14 +2260,21 @@ URL_DIRECTORY_HINTS = {
 
 def identify_model_type_from_filename(model_name):
     """Identify model type from filename patterns"""
-    model_lower = model_name.lower()
+    # A workflow reference may carry a subfolder ("moss\\model.safetensors").
+    # Every registry (model-list.json, the filename patterns) is keyed by the
+    # bare filename, so match on the basename - otherwise the pattern
+    # anchors (^moss_image, ^qwen...) never fire and the generic
+    # ".safetensors -> checkpoints" fallback sends the file to the wrong
+    # folder.
+    base = os.path.basename(model_name.replace('\\', '/'))
+    model_lower = base.lower()
 
     # Skip GGUF/LLM files
     if model_lower.endswith('.gguf'):
         return None, None
 
     # First check model-list.json for exact match (from metadata)
-    list_type, list_dir, list_url, list_size = lookup_model_in_model_list(model_name)
+    list_type, list_dir, list_url, list_size = lookup_model_in_model_list(base)
     if list_type and list_dir:
         return list_type, list_dir
 
@@ -2267,7 +2284,7 @@ def identify_model_type_from_filename(model_name):
             return model_type, directory
 
     # Default fallback by extension
-    ext = os.path.splitext(model_name)[1].lower()
+    ext = os.path.splitext(base)[1].lower()
     if ext in {'.safetensors', '.ckpt'}:
         return 'Checkpoint', 'checkpoints'
     elif ext == '.onnx':
@@ -2904,6 +2921,34 @@ def scan_workflow_for_models(workflow_json):
 
                 model_files.add(decoded)
                 model_name_map[decoded] = cleaned  # Keep original for URL matching
+
+    # Drop regex "ghost" rows. The raw-text regex above only matches a bare
+    # filename ("moss_image_sft_bf16.safetensors"), but a real node reference
+    # carries a subfolder ("moss\\moss_image_sft_bf16.safetensors"). Both land
+    # in model_files, so the same model appears twice - and the bare copy gets
+    # a guessed directory ("checkpoints" for a .safetensors fallback) that
+    # points the download at the wrong folder. Keep only the qualified
+    # reference when both exist.
+    by_basename = {}
+    for m in model_files:
+        by_basename.setdefault(os.path.basename(m).lower(), []).append(m)
+    ghost_basenames = set()
+    for base, variants in by_basename.items():
+        if len(variants) < 2:
+            continue
+        qualified = [v for v in variants if os.path.dirname(v.replace('\\', '/'))]
+        if qualified:
+            ghost_basenames.add(base)
+    if ghost_basenames:
+        before = len(model_files)
+        model_files = {m for m in model_files
+                       if os.path.basename(m).lower() not in ghost_basenames
+                       or os.path.dirname(m.replace('\\', '/'))}
+        if len(model_files) != before:
+            logging.info(
+                f"[WMD] Dropped {before - len(model_files)} ghost model row(s): "
+                f"bare filename duplicated by a folder-qualified reference"
+            )
 
     # Find download URLs via regex
     url_pattern = r'(https?://(?:huggingface\.co|civitai\.com|github\.com)[^\s"\'<>\)]+)'
