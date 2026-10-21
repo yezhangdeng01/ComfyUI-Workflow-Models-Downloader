@@ -27,7 +27,8 @@ Manage all your downloads in one place. Features Direct URL Download - paste any
 ### Workflows Tab
 Browse saved workflow files and manage model sources:
 - **3-column layout** - Workflows list, models in workflow, model details
-- **Manual source entry** - Add download URLs for models with unknown sources
+- **Automatic source resolution** - Missing models are resolved in the background; the best-verified download link is picked and shown with its evidence
+- **Manual source entry** - Override the automatic choice with your own URL for any model
 - **Advanced Search** - AI-powered search using Tavily to find model sources
 - **Search caching** - Results persist across restarts
 
@@ -70,6 +71,13 @@ Built-in FAQ and troubleshooting guide covering API key setup, common errors, an
 - **One-click download** - Download missing models directly from the UI
 - **Background downloads** - Downloads continue even when modal is closed
 - **Progress tracking** - Real-time download progress with notifications
+
+### v1.9.0 New Features
+- **Automatic source resolution** - Missing models are resolved in the background; the plugin picks the best-verified link and shows the evidence (size match, target-folder match, official publisher)
+- **Verified vs best-guess badge** - Each model shows whether its source is confirmed by objective checks or only a best guess
+- **Instant workflow scan** - Scanning no longer touches the network, so the model table appears immediately instead of blocking for ~10s
+- **Resumable downloads that actually resume** - Interrupted downloads keep every byte received and continue from the break point
+- **Correct target folder detection** - Models are matched and saved in the ComfyUI folder the loading node actually reads from
 
 ### v1.8.0 New Features
 - **Tabbed UI** - Clean organization with 5 tabs: Workflow Models, Downloads, Local Browser, Settings, Help

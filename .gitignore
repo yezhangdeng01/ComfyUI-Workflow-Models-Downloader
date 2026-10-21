@@ -41,3 +41,6 @@ wmd.log.*
 
 venv/
 .venv/
+
+# Internal development progress notes (local only)
+docs/
