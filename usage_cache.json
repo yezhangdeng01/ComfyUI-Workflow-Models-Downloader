@@ -1,0 +1,643 @@
+{
+  "Qwen3.8-27B-Q4_K_M.gguf": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "selflift+2xVAE+\u9510\u5316\u653e\u5927\u6a21\u578b\u5de5\u4f5c\u6d41.json",
+      "\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "mmproj-F16.gguf": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "selflift+2xVAE+\u9510\u5316\u653e\u5927\u6a21\u578b\u5de5\u4f5c\u6d41.json",
+      "\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "qwen3vl_32b_minimax_h3_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "selflift+2xVAE+\u9510\u5316\u653e\u5927\u6a21\u578b\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "minimax_h3_video_vae_fp16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "selflift+2xVAE+\u9510\u5316\u653e\u5927\u6a21\u578b\u5de5\u4f5c\u6d41.json",
+      "\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "minimax_h3_fl2v_lightx2v_turbo_4step_v0.1_comfy.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "selflift+2xVAE+\u9510\u5316\u653e\u5927\u6a21\u578b\u5de5\u4f5c\u6d41.json",
+      "\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "hyperVAEKrea2Minimax_v20MinimaxX2Upscale.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "selflift+2xVAE+\u9510\u5316\u653e\u5927\u6a21\u578b\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "minimax_h3_audio_vae_fp32.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "selflift+2xVAE+\u9510\u5316\u653e\u5927\u6a21\u578b\u5de5\u4f5c\u6d41.json",
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json",
+      "\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json",
+      "MinimaxH3\u52a8\u6001\u8fc1\u79fb\u9ed1\u79d1\u6280\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "h3_upscaler_sharpness_2000steps_v0.1_fp32.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "selflift+2xVAE+\u9510\u5316\u653e\u5927\u6a21\u578b\u5de5\u4f5c\u6d41.json",
+      "MinimaxH3\u52a8\u6001\u8fc1\u79fb\u9ed1\u79d1\u6280\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "minimax_h3_fl2va_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "selflift+2xVAE+\u9510\u5316\u653e\u5927\u6a21\u578b\u5de5\u4f5c\u6d41.json",
+      "\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "taeh3.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "selflift+2xVAE+\u9510\u5316\u653e\u5927\u6a21\u578b\u5de5\u4f5c\u6d41.json",
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json",
+      "\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json",
+      "MinimaxH3\u52a8\u6001\u8fc1\u79fb\u9ed1\u79d1\u6280\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "H3_Combat_V2.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json"
+    ]
+  },
+  "H3_speed_slider_1.1.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json"
+    ]
+  },
+  "Motion_Repair_V2.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json"
+    ]
+  },
+  "MysticXXX_MMH3-V1.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json"
+    ]
+  },
+  "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json"
+    ]
+  },
+  "minimax_h3_video_vae_int8_convrot.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json",
+      "MinimaxH3\u52a8\u6001\u8fc1\u79fb\u9ed1\u79d1\u6280\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "H3_Fight_Flow_V1.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json"
+    ]
+  },
+  "minimax_h3_dmad_full_dareties_v4_step600_comfy_fro.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json"
+    ]
+  },
+  "minimax_h3_latent_upscaler_3d_fp16_V2.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json"
+    ]
+  },
+  "minimax_h3_hybrid_fl2va_ref2va_b25-49-int8.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json",
+      "MinimaxH3\u52a8\u6001\u8fc1\u79fb\u9ed1\u79d1\u6280\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "minimax_h3_latent_upscaler_3d_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "qwen3vl_32b_minimax_h3_int8_convrot.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json",
+      "MinimaxH3\u52a8\u6001\u8fc1\u79fb\u9ed1\u79d1\u6280\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "flux2-vae.safetensors": {
+    "last_used": 1792581243.0802188,
+    "workflows": [
+      "moss base+sft.json",
+      "\u8fb9\u754c\u6846+moss sft\uff08node2.0\u5f00\u542f\uff09.json",
+      "current"
+    ]
+  },
+  "moss\\qwen3.5_9b_int8_convrot.safetensors": {
+    "last_used": 1792581243.0802188,
+    "workflows": [
+      "moss base+sft.json",
+      "\u8fb9\u754c\u6846+moss sft\uff08node2.0\u5f00\u542f\uff09.json",
+      "current"
+    ]
+  },
+  "moss\\moss_image_base_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "moss base+sft.json"
+    ]
+  },
+  "moss\\moss_image_sft_bf16.safetensors": {
+    "last_used": 1792581243.0802188,
+    "workflows": [
+      "moss base+sft.json",
+      "\u8fb9\u754c\u6846+moss sft\uff08node2.0\u5f00\u542f\uff09.json",
+      "current"
+    ]
+  },
+  "minimax_h3_fl2v_turbo_8step_v1.0_768p_comfyui_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "MinimaxH3\u52a8\u6001\u8fc1\u79fb\u9ed1\u79d1\u6280\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "depth_anything_v2_vitl_fp32.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "MinimaxH3\u52a8\u6001\u8fc1\u79fb\u9ed1\u79d1\u6280\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "qwen_image_2.1_int8_convrot.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Qwen+image+2.1+\u6587\u751f\u56fe.json",
+      "Qwen+image+2.1\u56fe\u7247\u7f16\u8f91.json"
+    ]
+  },
+  "qwen3.5_9b_qwen_image_2.1_pe_t2i.int8_convrot.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Qwen+image+2.1+\u6587\u751f\u56fe.json"
+    ]
+  },
+  "qwen3vl_8b_int8_convrot.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Qwen+image+2.1+\u6587\u751f\u56fe.json",
+      "Qwen+image+2.1\u56fe\u7247\u7f16\u8f91.json"
+    ]
+  },
+  "qwen_image_2.1_vae_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Qwen+image+2.1+\u6587\u751f\u56fe.json",
+      "Qwen+image+2.1\u56fe\u7247\u7f16\u8f91.json",
+      "\u5b50\u56fe\u5c55\u5f00\u7248QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json"
+    ]
+  },
+  "qwen3.5_9b_qwen_image_2.1_pe_i2i.int8_convrot.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Qwen+image+2.1\u56fe\u7247\u7f16\u8f91.json"
+    ]
+  },
+  "person_detect_v0_s_yv11\\model.pt": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json",
+      "\u4e0d\u4f7f\u7528LGTOOLS\u63d2\u4ef6\u7248 QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67089\u65e5.json",
+      "\u5b50\u56fe\u5c55\u5f00\u7248QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json"
+    ]
+  },
+  "qwen3vl_8b_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u5b50\u56fe\u5c55\u5f00\u7248QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json"
+    ]
+  },
+  "Qwen\\Qwen2.1\\Qwen21-\u5378\u7532lora.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u5b50\u56fe\u5c55\u5f00\u7248QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json"
+    ]
+  },
+  "Qwen\\Qwen2.1\\Qwen21-\u65e0\u4f4d\u79fb\u4e00\u81f4\u6027consistency.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u5b50\u56fe\u5c55\u5f00\u7248QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json"
+    ]
+  },
+  "Qwen\\Qwen2.1\\Qwen21-\u6362\u5934bfs_head_v1.1_qwen_2.1.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u5b50\u56fe\u5c55\u5f00\u7248QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json"
+    ]
+  },
+  "Qwen\\Qwen2.1\\Qwen21-\u6c34\u5370\u79fb\u9664watermark_remover_v2.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u5b50\u56fe\u5c55\u5f00\u7248QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json"
+    ]
+  },
+  "Qwen3.8-27B-Uncensored-Q6_K.gguf": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u5b50\u56fe\u5c55\u5f00\u7248QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json"
+    ]
+  },
+  "Qwen3.8-27B-Uncensored-vision-f16.gguf": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u5b50\u56fe\u5c55\u5f00\u7248QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json"
+    ]
+  },
+  "qwen\\qwen_image_2.1_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u5b50\u56fe\u5c55\u5f00\u7248QWEN2.1 \u6587\u751f\u56fe-\u56fe\u50cf\u7f16\u8f91-\u591a\u56fe\u7f16\u8f91 \u5316\u795e\u7ea7V2-B\u7ad9\u5c0f\u73e0\u5149-2026\u5e7410\u67088\u65e5.json"
+    ]
+  },
+  "sam_vit_b_01ec64.pth": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "1.5&XL\u6587\u751f\u56fe\u653e\u5927+\u9762\u90e8\u4fee\u590d\uff082.6\uff09.json",
+      "xl\u61d2\u4eba\u4e00\u952e\u51fa\u56fe.json",
+      "xl\u6362\u8138.json"
+    ]
+  },
+  "SUPIR-v0F_fp16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "xl\u61d2\u4eba\u4e00\u952e\u51fa\u56fe.json"
+    ]
+  },
+  "fooocus_inpaint_head.pth": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "XL\u6269\u56fe _ Fooocus\u5c40\u90e8\u91cd\u7ed8 _ \u4e00\u952e\u8fd0\u884c.json"
+    ]
+  },
+  "vae-ft-mse-840000-ema-pruned.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "XL\u6587\u751f\u56fe+\u653e\u5927\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "FLUX\u6a21\u578b\\flux1-dev-fp8.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u3010CB\u3011FLUX_XL_1.5 \u6700\u65b0\u8d85\u5b9e\u7528\u65e0\u9650\u7075\u611f\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "clip_l.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u3010CB\u3011FLUX_XL_1.5 \u6700\u65b0\u8d85\u5b9e\u7528\u65e0\u9650\u7075\u611f\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "XL\\\u6f2b\u753b animaPencilXL_v500.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u3010CB\u3011FLUX_XL_1.5 \u6700\u65b0\u8d85\u5b9e\u7528\u65e0\u9650\u7075\u611f\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "t5xxl_fp8_e4m3fn.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u3010CB\u3011FLUX_XL_1.5 \u6700\u65b0\u8d85\u5b9e\u7528\u65e0\u9650\u7075\u611f\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "FLUX\u4e13\u7528\\\u81ea\u8bad\u7ec3\uff08\u53ef\u7528\uff09\\3D \u602a\u8bde\u68a6\u6838 v1.0.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u3010CB\u3011FLUX_XL_1.5 \u6700\u65b0\u8d85\u5b9e\u7528\u65e0\u9650\u7075\u611f\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "\u81ea\u5df1\u8bad\u7ec3\u6a21\u578b\\\u6210\u54c1\\\u3010CB\u30111.5 \u6e05\u65b0\u56fd\u98cev1.0.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u3010CB\u3011FLUX_XL_1.5 \u6700\u65b0\u8d85\u5b9e\u7528\u65e0\u9650\u7075\u611f\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "1.5\\\u6f2b\u753b \u3010\u9510\u5229\u753b\u98ce\u3011revAnimated_v122.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u3010CB\u3011FLUX_XL_1.5 \u6700\u65b0\u8d85\u5b9e\u7528\u65e0\u9650\u7075\u611f\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "\u81ea\u5df1\u8bad\u7ec3\u6a21\u578b\\\u6210\u54c1\\\u3010CB\u3011XL \u6e05\u65b0\u56fd\u98cev1.0.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u3010CB\u3011FLUX_XL_1.5 \u6700\u65b0\u8d85\u5b9e\u7528\u65e0\u9650\u7075\u611f\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "FLUX\\FLUX.1-dev-VAE.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u3010CB\u3011FLUX_XL_1.5 \u6700\u65b0\u8d85\u5b9e\u7528\u65e0\u9650\u7075\u611f\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "random_mask_brushnet_ckpt_sdxl.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u4e00\u952e\u8fd0\u884c \u6838\u5fc3\uff1aXL \u6269\u56fe \u6781\u7b80 \u4fee\u590d \u57fa\u7840\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "codeformer.pth": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u4eba\u50cf\u5199\u771fXL+\u4fee\u8138\u4fee\u624b\u653e\u5927.json"
+    ]
+  },
+  "ip-adapter_pulid_sdxl_fp16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u80cc\u666f\u4e0d\u53d8\u4e09\u6a21\u578bXL\u6362\u8138.json"
+    ]
+  },
+  "sam_vit_h_4b8939.pth": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u80cc\u666f\u4e0d\u53d8\u4e09\u6a21\u578bXL\u6362\u8138.json"
+    ]
+  },
+  "sheetsage2_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "1-Aiden-YuE2\u97f3\u4e50\u5de5\u4f5c\u6d41\uff01\uff01\uff01.json"
+    ]
+  },
+  "yue2_3b_int8_convrot.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "1-Aiden-YuE2\u97f3\u4e50\u5de5\u4f5c\u6d41\uff01\uff01\uff01.json"
+    ]
+  },
+  "diffusion_pytorch_model.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z-Image-Turbo+\u56fe\u751f\u56fe+\u59ff\u52bf\u6df1\u5ea6\u63a7\u52362.1+\u6d17\u56fe.json"
+    ]
+  },
+  "z-image-turbo-fp8-e4m3fn.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z-Image-Turbo+\u56fe\u751f\u56fe+\u59ff\u52bf\u6df1\u5ea6\u63a7\u52362.1+\u6d17\u56fe.json"
+    ]
+  },
+  "qwen_3_4b.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z-Image-Turbo+\u56fe\u751f\u56fe+\u59ff\u52bf\u6df1\u5ea6\u63a7\u52362.1+\u6d17\u56fe.json",
+      "zimage\u53cc\u91c7+V2\u8d85\u5206\u653e\u5927.json",
+      "ZIT_Luneva_Infinite_Detail_Workflow_v2.01.json",
+      "\u25b6Z-image-CN\u63a7\u5236V2.1-\u53cc\u91c7\u6837\u5de5\u4f5c\u6d41.json",
+      "\ud83e\udd73\u968f\u673a\u7f8e\u5973\u5b75\u86cb\u5668 V3\u5347\u7ea7\u7248\u3010\u65e0\u9650\u6a21\u5f0f\u3011 26-04-04.json"
+    ]
+  },
+  "Z-Image-Turbo-Fun-Controlnet-Union-2.1.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z-Image-Turbo+\u56fe\u751f\u56fe+\u59ff\u52bf\u6df1\u5ea6\u63a7\u52362.1+\u6d17\u56fe.json"
+    ]
+  },
+  "Qwen\\qwen_3_4b.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z-Image\u6587\u751f\u56fe+\u6d17\u56fe+\u5c40\u90e8\u91cd\u7ed8\u5408\u96c6.json",
+      "Zimage-\u653e\u5927\u4fee\u590d-\u3010\u4e0d\u589e\u52a0\u663e\u5b58\u538b\u529b\u3011-\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "Q-wen\\z_image_vae.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z-Image\u6587\u751f\u56fe+\u6d17\u56fe+\u5c40\u90e8\u91cd\u7ed8\u5408\u96c6.json"
+    ]
+  },
+  "Z-Image-Turbo-Fun-Controlnet-Union-2.1-8steps.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z-Image\u6587\u751f\u56fe+\u6d17\u56fe+\u5c40\u90e8\u91cd\u7ed8\u5408\u96c6.json"
+    ]
+  },
+  "seedvr2_ema_7b_fp8_e4m3fn_mixed_block35_fp16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z-Image\u6587\u751f\u56fe+\u6d17\u56fe+\u5c40\u90e8\u91cd\u7ed8\u5408\u96c6.json"
+    ]
+  },
+  "Qwen\\z_image_turbo_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z-Image\u6587\u751f\u56fe+\u6d17\u56fe+\u5c40\u90e8\u91cd\u7ed8\u5408\u96c6.json"
+    ]
+  },
+  "ema_vae_fp16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z-Image\u6587\u751f\u56fe+\u6d17\u56fe+\u5c40\u90e8\u91cd\u7ed8\u5408\u96c6.json",
+      "zimage\u53cc\u91c7+V2\u8d85\u5206\u653e\u5927.json"
+    ]
+  },
+  "z\\qwen_3_4b.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z.json"
+    ]
+  },
+  "z\\z_image_turbo_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z.json"
+    ]
+  },
+  "z\\diffusion_pytorch_model.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Z.json"
+    ]
+  },
+  "4x_foolhardy_Remacri.pth": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Zimage-\u653e\u5927\u4fee\u590d-\u3010\u4e0d\u589e\u52a0\u663e\u5b58\u538b\u529b\u3011-\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "flux\\ae.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Zimage-\u653e\u5927\u4fee\u590d-\u3010\u4e0d\u589e\u52a0\u663e\u5b58\u538b\u529b\u3011-\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "Zimage\\z_image_turbo_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Zimage-\u653e\u5927\u4fee\u590d-\u3010\u4e0d\u589e\u52a0\u663e\u5b58\u538b\u529b\u3011-\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "ZIT\\ZIT-Realistic 3D cartoon_lora_v01.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "Zimage-\u653e\u5927\u4fee\u590d-\u3010\u4e0d\u589e\u52a0\u663e\u5b58\u538b\u529b\u3011-\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "z_image_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "zimage\u53cc\u91c7+V2\u8d85\u5206\u653e\u5927.json"
+    ]
+  },
+  "Zimage\\hina_zImageTurbo_asianMix_v4.59C-bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "zimage\u53cc\u91c7+V2\u8d85\u5206\u653e\u5927.json"
+    ]
+  },
+  "seedvr2_ema_7b-Q8_0.gguf": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "zimage\u53cc\u91c7+V2\u8d85\u5206\u653e\u5927.json"
+    ]
+  },
+  "z_image_turbo_bf16.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "zimage\u53cc\u91c7+V2\u8d85\u5206\u653e\u5927.json",
+      "ZIT_Luneva_Infinite_Detail_Workflow_v2.01.json",
+      "\u25b6Z-image-CN\u63a7\u5236V2.1-\u53cc\u91c7\u6837\u5de5\u4f5c\u6d41.json",
+      "\ud83e\udd73\u968f\u673a\u7f8e\u5973\u5b75\u86cb\u5668 V3\u5347\u7ea7\u7248\u3010\u65e0\u9650\u6a21\u5f0f\u3011 26-04-04.json"
+    ]
+  },
+  "ultrafluxVAEImproved_v10.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "zimage\u53cc\u91c7+V2\u8d85\u5206\u653e\u5927.json",
+      "\u25b6Z-image-CN\u63a7\u5236V2.1-\u53cc\u91c7\u6837\u5de5\u4f5c\u6d41.json",
+      "\ud83e\udd73\u968f\u673a\u7f8e\u5973\u5b75\u86cb\u5668 V3\u5347\u7ea7\u7248\u3010\u65e0\u9650\u6a21\u5f0f\u3011 26-04-04.json"
+    ]
+  },
+  "003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x2_PSNR.pth": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "ZIT_Luneva_Infinite_Detail_Workflow_v2.01.json"
+    ]
+  },
+  "zimageturbo-vae-ae.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "ZIT_Luneva_Infinite_Detail_Workflow_v2.01.json"
+    ]
+  },
+  "Z-Image-Turbo-Fun-Controlnet-Union-2.0.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "ZIT_Luneva_Infinite_Detail_Workflow_v2.01.json"
+    ]
+  },
+  "huihui-qwen3-4b-abliterated-v2-q8_0.gguf": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "ZIT_Luneva_Infinite_Detail_Workflow_v2.01.json"
+    ]
+  },
+  "zImageTurboGGUF_q80.gguf": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "ZIT_Luneva_Infinite_Detail_Workflow_v2.01.json"
+    ]
+  },
+  "scunet_color_real_gan.pth": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "ZIT_Luneva_Infinite_Detail_Workflow_v2.01.json"
+    ]
+  },
+  "Z-Image-Turbo-Fun-Controlnet-Union-2.1.safetensors_Union 2.1 - 8\u6b65.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\u25b6Z-image-CN\u63a7\u5236V2.1-\u53cc\u91c7\u6837\u5de5\u4f5c\u6d41.json"
+    ]
+  },
+  "zimage\\Z-image-\u773c\u775b\u7ec6\u8282\u589e\u5f3a-DetailedEyes-LoRA_V2.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\ud83e\udd73\u968f\u673a\u7f8e\u5973\u5b75\u86cb\u5668 V3\u5347\u7ea7\u7248\u3010\u65e0\u9650\u6a21\u5f0f\u3011 26-04-04.json"
+    ]
+  },
+  "z-image\\\u56fe\u56fe\u9ed1\u4e1dTutu's half-leg aurora black stockings_Zimg_V1.safetensors": {
+    "last_used": 1792578720.5677192,
+    "workflows": [
+      "\ud83e\udd73\u968f\u673a\u7f8e\u5973\u5b75\u86cb\u5668 V3\u5347\u7ea7\u7248\u3010\u65e0\u9650\u6a21\u5f0f\u3011 26-04-04.json"
+    ]
+  },
+  "moss_image_sft_bf16.safetensors": {
+    "last_used": 1792579085.3084402,
+    "workflows": [
+      "current"
+    ]
+  },
+  "qwen3.5_9b_int8_convrot.safetensors": {
+    "last_used": 1792579085.3084402,
+    "workflows": [
+      "current"
+    ]
+  },
+  "__wmd_canvas_diag__": {
+    "last_used": 1792592184.211808,
+    "workflows": [
+      "{\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,700],\"dpr\":1.25,\"zoom\":0.732421875,\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1500,855],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 684px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.19084,\"offset\":[-1675,16],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":99,\"assetsLoaded\":[\"/assets/index-BK-6hEfU.js\",\"/assets/rolldown-runtime-CM1DJQSe.js\",\"/assets/vendor-datadog-CS-2l-KQ.js\",\"/assets/main-quutincS.js\",\"/assets/vendor-other-Datu7mlu.js\",\"/assets/vendor-three-C50hgRID.js\",\"/assets/vendor-zod-VVDcHmp2.js\",\"/assets/vendor-vue-core-y4MynkKA.js\",\"/assets/vendor-tiptap-hsLNqOJQ.js\",\"/assets/vendor-vueuse-CIVdHFF_.js\",\"/assets/vendor-i18n-D0rAmGhT.js\",\"/assets/src-BuZCUWi9.js\",\"/assets/Button-qFvMgVnK.js\",\"/assets/vendor-reka-ui-nevGmlAS.js\",\"/assets/settingStore-DZ2-HL-F.js\",\"/assets/telemetry-4S7ipFsj.js\",\"/assets/devFeatureFlagOverride-Yrts6Uc_.js\",\"/assets/vendor-axios-DgTRMpBY.js\",\"/assets/api-DTg5QMcw.js\",\"/assets/vendor-firebase-CaSUXJ77.js\",\"/assets/remoteConfig-De9t75S5.js\",\"/assets/vendor-sentry-DKQGRCOn.js\",\"/assets/toastStore-BBug5IJg.js\",\"/assets/types-DhLkOc6x.js\",\"/assets/i18n-hytkv797.js\",\"/assets/formatUtil-grDslll6.js\",\"/assets/commands-zuj82vPI.js\",\"/assets/main-DhMh27ya.js\",\"/assets/nodeDefs-wSfHbjZW.js\",\"/assets/settings-DbZMa4PV.js\",\"/assets/useErrorHandling-C7CAE0tz.js\",\"/assets/refreshRemoteConfig-SkZ0Tt3i.js\",\"/assets/reportError-_9x9VsPC.js\",\"/assets/hostTelemetryEnabled-D8fpP684.js\",\"/assets/dialogStore-D2MuJm_r.js\",\"/assets/userStore-DHf-Vgpg.js\",\"/assets/widgetTypes-BW7kINQW.js\",\"/assets/useFeatureFlags-CE6FmuLs.js\",\"/assets/creditsUtil-CuKRlhWA.js\",\"/assets/Popover-CV43_KKk.js\",\"/assets/vendor-markdown-Bxx3z9j-.js\",\"/assets/useModalLiftedZIndex-Bdlz-OcS.js\",\"/assets/vendor-yjs-sAIneJUK.js\",\"/assets/vendor-primevue-DgZFaBSX.js\",\"/assets/ColorPicker-DEsrhiXY.js\",\"/assets/SelectValue-DEseUJH4.js\",\"/assets/downloadUtil-D7c1LGLh.js\",\"/assets/SanitizedHtml-DxXFGG3H.js\",\"/assets/hdrFormatUtil-DtylSdx1.js\",\"/assets/useImageQuiet-BU2xlczX.js\",\"/assets/DialogHeader-B3VglWwy.js\",\"/assets/types-CpqNdv_a.js\",\"/assets/useExternalLink-BRUARALL.js\",\"/assets/Input-DZWvFFvp.js\",\"/assets/envUtil-DPBXy0gR.js\",\"/assets/Loader-4SL2a8PX.js\",\"/assets/_plugin-vue_export-helper-N9oGzAiE.js\",\"/assets/useRetryableMediaSrc-ERZ_sBA-.js\",\"/assets/VideoPlayOverlay-Dg3Hg4z0.js\",\"/assets/WaveAudioPlayer-DI4FXswN.js\",\"/assets/Slider-Ei-Lq0cL.js\",\"/assets/useTextFileContent-Blqs2aC-.js\",\"/assets/useFeatureUsageTracker-Sc4DKOWE.js\",\"/assets/Spinner-B-DnbZOy.js\",\"/assets/DialogClose-C4mNq8F7.js\",\"/assets/Switch-9_MENn5k.js\",\"/assets/LayoutDefault-smks8QUf.js\",\"/assets/oauthState-CuoABVrt.js\",\"/assets/useConflictDetection-Cm_xV8L1.js\",\"/assets/vendor-other-CaaUC6Qe.css\",\"/assets/ButtonGroup-DloW0J1K.js\",\"/assets/paymentReturnUrl-CJee2Jcf.js\",\"/assets/vRekaZIndex-BmGnnals.js\",\"/assets/useConflictDetection-BzTiRNUY.css\",\"/assets/settingStore-zHFWdF6T.css\",\"/assets/main-NWEiSzjK.css\",\"/assets/refreshRemoteConfig-B6axYHtx.js\",\"/assets/api-DSrM-OB9.js\",\"/assets/i18n-CtbcvYfV.js\",\"/assets/GraphView-C7jM5DM_.js\",\"/assets/SubscribeToRun-CBEP90QF.js\",\"/assets/ScrubableNumberInput-RbtIG4CN.js\",\"/assets/useClickDragGuard-ByD94fY5.js\",\"/assets/curveUtils-B4Zgkmq7.js\",\"/assets/keybindingService-jAJ_Jazb.js\",\"/assets/UserAvatar-CJlIEpr5.js\",\"/assets/layout-Bo_r5A61.js\",\"/assets/useTypeformEmbed-CHaMN3wW.js\",\"/assets/loadExternalScript-CtULW-pK.js\",\"/assets/feedbackDialog-BCOu_5FM.js\",\"/assets/TypeformEmbed-Bqy5pbJL.js\",\"/assets/usePricingTableUrlLoader-C1krvmD8.js\",\"/assets/WorkspaceProfilePic-BONvfl6C.js\",\"/assets/GlobalToast-DhJPEGPn.js\",\"/assets/TopbarBadge-sj_x-jfH.js\",\"/assets/missingModelMetadata-D1zPyifp.js\",\"/assets/serverConfigStore-DRoc5z-o.js\",\"/assets/useWorkspaceTierLabel-rvxEOgFJ.js\",\"/assets/workflowShareService-DbWA49e0.js\",\"/assets/releaseStore-BU1OxVmZ.js\",\"/assets/WorkspaceSwitcherPopover-DoxDi2Zw.js\",\"/assets/useTransformState-9zJFG6Ev.js\",\"/assets/useMoreOptionsMenu-CybzcGLB.js\",\"/assets/AudioPreviewPlayer-DSH0K4g3.css\",\"/assets/AudioPreviewPlayer-LjgSmWtO.js\",\"/assets/GraphView-gadae0ZN.css\",\"/assets/useTerminalTabs-VoeIVjPI.js\",\"/assets/vendor-xterm-CeI2v19Z.js\",\"/assets/vendor-xterm-kHJ-D0s7.css\",\"/assets/useTerminalTabs-BQPyS6-n.css\",\"/assets/main-CJ3bXrRD.js\",\"/assets/commands-DkGQpw_9.js\",\"/assets/settings-CDlf4GFv.js\",\"/assets/nodeDefs-DIaNEaew.js\",\"/assets/core-B0vGWEoL.js\",\"/assets/nodeTypes-DESVVsv5.js\",\"/assets/Textarea-CDmx5Tqr.js\",\"/assets/WidgetTextPreview-B9iN9Ldj.js\",\"/assets/useCompositorLayers-DGsQ7b-T.js\",\"/assets/audioService-BUJmi8ah.js\",\"/assets/workflowDraftStoreV2-BrSHX5My.js\",\"/assets/nodeTemplates-nqFWGBWs.js\"],\"extLoaded\":[],\"lsKeys\":[{\"k\":\"Comfy.ConflictModalDismissed\",\"v\":\"false\"},{\"k\":\"pysssss.ImageFeed.FeedSize\",\"v\":\"25\"},{\"k\":\"KayResourceMonitorPosition\",\"v\":\"{\\\"left\\\":160,\\\"top\\\":799}\"},{\"k\":\"Comfy.Workflow.Draft.v2:personal:33157666\",\"v\":\"{\\\"data\\\":\\\"{\\\\\\\"id\\\\\\\":\\\\\\\"deba6ce5-ef98-43d3-bea1-2dc628b0a181\\\\\\\",\\\\\\\"revision\\\\\\\":0,\\\\\\\"last_node_id\\\\\\\":15,\\\\\\\"last_link_id\\\\\\\":20,\\\\\\\"nodes\\\\\\\":[{\\\\\\\"id\\\\\\\":1,\\\\\\\"type\\\\\\\":\\\\\\\"CLIPLoader\\\\\\\",\\\\\\\"pos\\\\\\\":[1404.6815001977866,2150.241110681896],\\\\\\\"size\\\\\\\":[478.8519265585851,161.92576984706722],\\\\\\\"flags\\\\\\\":{},\\\\\\\"order\\\\\\\":0,\\\\\\\"mode\\\\\\\":0,\\\\\\\"inputs\\\\\\\":[{\\\\\\\"localized_name\\\\\\\":\\\\\\\"CLIP\u540d\u79f0\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"clip_name\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"COMBO\\\\\\\",\\\\\\\"widget\\\\\\\":{\\\\\\\"name\\\\\\\":\\\\\\\"cli\"},{\"k\":\"Comfy.MenuPosition.Docked\",\"v\":\"true\"},{\"k\":\"Comfy.Assets.Sidebar.ViewMode\",\"v\":\"grid\"},{\"k\":\"Comfy.ConflictWarningBannerDismissed\",\"v\":\"false\"},{\"k\":\"litegrapheditor_clipboard\",\"v\":\"{\\\"nodes\\\":[{\\\"id\\\":2,\\\"type\\\":\\\"PreviewImage\\\",\\\"pos\\\":[4017.82421875,6500.646484375],\\\"size\\\":[227.56546020507812,425.911376953125],\\\"flags\\\":{},\\\"order\\\":100,\\\"mode\\\":0,\\\"inputs\\\":[{\\\"label\\\":\\\"\u56fe\u50cf\\\",\\\"localized_name\\\":\\\"\u56fe\u50cf\\\",\\\"name\\\":\\\"images\\\",\\\"type\\\":\\\"IMAGE\\\",\\\"link\\\":null}],\\\"outputs\\\":[{\\\"localized_name\\\":\\\"images\\\",\\\"name\\\":\\\"images\\\",\\\"type\\\":\\\"IMAGE\\\",\\\"links\\\":null}],\\\"properties\\\":{\\\"cnr_id\\\":\\\"comfy-core\\\",\\\"ver\\\":\\\"0.3.51\\\",\\\"Node name for S&R\\\":\"},{\"k\":\"Comfy.Workflow.Draft.v2:personal:c6114bea\",\"v\":\"{\\\"data\\\":\\\"{\\\\\\\"id\\\\\\\":\\\\\\\"eee7ca4f-9198-48dd-b48a-80b3f7191873\\\\\\\",\\\\\\\"revision\\\\\\\":0,\\\\\\\"last_node_id\\\\\\\":402,\\\\\\\"last_link_id\\\\\\\":645,\\\\\\\"nodes\\\\\\\":[{\\\\\\\"id\\\\\\\":19,\\\\\\\"type\\\\\\\":\\\\\\\"LoadImage\\\\\\\",\\\\\\\"pos\\\\\\\":[2725.342529296875,1426.5069580078125],\\\\\\\"size\\\\\\\":[463.908935546875,665.8704223632812],\\\\\\\"flags\\\\\\\":{\\\\\\\"disabled\\\\\\\":false},\\\\\\\"order\\\\\\\":0,\\\\\\\"mode\\\\\\\":0,\\\\\\\"inputs\\\\\\\":[{\\\\\\\"label\\\\\\\":\\\\\\\"image\\\\\\\",\\\\\\\"localized_name\\\\\\\":\\\\\\\"\u56fe\u50cf\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"image\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"COMB\"},{\"k\":\"KayResourceMonitorSize\",\"v\":\"{\\\"width\\\":250,\\\"height\\\":219}\"},{\"k\":\"Comfy.Workflow.DraftIndex.v2:personal\",\"v\":\"{\\\"v\\\":2,\\\"updatedAt\\\":1792591919455,\\\"order\\\":[\\\"7dde8427\\\",\\\"71bb57e4\\\",\\\"33157666\\\",\\\"9e9e60bc\\\",\\\"c6114bea\\\"],\\\"entries\\\":{\\\"33157666\\\":{\\\"name\\\":\\\"Moss/\u8fb9\u754c\u6846+moss sft\uff08node2.0\u5f00\u542f\uff09.json\\\",\\\"isTemporary\\\":false,\\\"updatedAt\\\":1792585013836,\\\"path\\\":\\\"workflows/Moss/\u8fb9\u754c\u6846+moss sft\uff08node2.0\u5f00\u542f\uff09.json\\\"},\\\"7dde8427\\\":{\\\"name\\\":\\\"yue2/1-Aiden-YuE2\u97f3\u4e50\u5de5\u4f5c\u6d41\uff01\uff01\uff01.json\\\",\\\"isTemporary\\\":false,\\\"updatedAt\\\":1792582022123,\\\"path\\\":\\\"workflows/yue2/1-Aiden-YuE2\u97f3\u4e50\u5de5\"},{\"k\":\"Comfy.FeatureUsage\",\"v\":\"{\\\"node-search\\\":{\\\"useCount\\\":7,\\\"firstUsed\\\":1791017516140,\\\"lastUsed\\\":1792576850054}}\"},{\"k\":\"Comfy.MenuPosition.Floating\",\"v\":\"{\\\"x\\\":866,\\\"y\\\":668}\"},{\"k\":\"pysssss.ImageFeed.Visible\",\"v\":\"0\"},{\"k\":\"Comfy.ConflictRedDotDismissed\",\"v\":\"false\"},{\"k\":\"pysssss.ImageFeed.ImageSize\",\"v\":\"4\"},{\"k\":\"KayNodeAlignToolbarPosition\",\"v\":\"{\\\"leftPercentage\\\":54.73633036017418,\\\"topPercentage\\\":1.4636542801772683}\"},{\"k\":\"KayResourceMonitorVisible\",\"v\":\"false\"},{\"k\":\"Comfy.Settings.Comfy.CustomColorPalettes\",\"v\":\"{\\\"obsidian\\\":{\\\"version\\\":112,\\\"id\\\":\\\"obsidian\\\",\\\"name\\\":\\\"Obsidian\\\",\\\"colors\\\":{\\\"node_slot\\\":{\\\"CLIP\\\":\\\"#FFD500\\\",\\\"CLIP_VISION\\\":\\\"#A8DADC\\\",\\\"CLIP_VISION_OUTPUT\\\":\\\"#ad7452\\\",\\\"CONDITIONING\\\":\\\"#FFA931\\\",\\\"CONTROL_NET\\\":\\\"#6EE7B7\\\",\\\"IMAGE\\\":\\\"#64B5F6\\\",\\\"LATENT\\\":\\\"#FF9CF9\\\",\\\"MASK\\\":\\\"#81C784\\\",\\\"MODEL\\\":\\\"#B39DDB\\\",\\\"STYLE_MODEL\\\":\\\"#C2FFAE\\\",\\\"VAE\\\":\\\"#FF6E6E\\\",\\\"TAESD\\\":\\\"#DCC274\\\",\\\"PIPE_LINE\\\":\\\"#7737AA\\\",\\\"PIPE_LINE_SDXL\\\":\\\"#7737AA\\\",\\\"INT\\\":\\\"#29699C\\\",\"},{\"k\":\"Comfy.Workflow.Draft.v2:personal:9e9e60bc\",\"v\":\"{\\\"data\\\":\\\"{\\\\\\\"id\\\\\\\":\\\\\\\"e3f2b845-8f2c-4b5a-9caf-eac1029d3e7e\\\\\\\",\\\\\\\"revision\\\\\\\":0,\\\\\\\"last_node_id\\\\\\\":244,\\\\\\\"last_link_id\\\\\\\":456,\\\\\\\"nodes\\\\\\\":[{\\\\\\\"id\\\\\\\":148,\\\\\\\"type\\\\\\\":\\\\\\\"ModelAttentionBackend\\\\\\\",\\\\\\\"pos\\\\\\\":[-1503.08984375,5046.6708984375],\\\\\\\"size\\\\\\\":[294.53125,86],\\\\\\\"flags\\\\\\\":{},\\\\\\\"order\\\\\\\":16,\\\\\\\"mode\\\\\\\":0,\\\\\\\"inputs\\\\\\\":[{\\\\\\\"label\\\\\\\":\\\\\\\"model\\\\\\\",\\\\\\\"localized_name\\\\\\\":\\\\\\\"model\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"model\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"MODEL\\\\\\\",\\\\\\\"link\\\\\\\":310},{\\\\\\\"label\\\\\\\":\"},{\"k\":\"Comfy.Workflow.LastOpenPaths:personal\",\"v\":\"{\\\"workspaceId\\\":\\\"personal\\\",\\\"paths\\\":[\\\"workflows/yue2/1-Aiden-YuE2\u97f3\u4e50\u5de5\u4f5c\u6d41\uff01\uff01\uff01.json\\\",\\\"workflows/minimaxH3/YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json\\\",\\\"workflows/minimaxH3/\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json\\\",\\\"workflows/Moss/\u8fb9\u754c\u6846+moss sft\uff08node2.0\u5f00\u542f\uff09.json\\\",\\\"workflows/Z-image/zimage\u53cc\u91c7+V2\u8d85\u5206\u653e\u5927.json\\\"],\\\"activeIndex\\\":1}\"},{\"k\":\"pysssss.SnapToGrid.Guide\",\"v\":\"{\\\"lines\\\":{\\\"enabled\\\":false,\\\"fillStyle\\\":\\\"rgba(255, 0, 0, 0.5)\\\"},\\\"block\\\":{\\\"enabled\\\":false,\\\"fillStyle\\\":\\\"rgba(0, 0, 255, 0.5)\\\"}}\"},{\"k\":\"Comfy.Workflow.Draft.v2:personal:7dde8427\",\"v\":\"{\\\"data\\\":\\\"{\\\\\\\"id\\\\\\\":\\\\\\\"9bb514c4-2d77-4cac-82f3-fb5dca2632d5\\\\\\\",\\\\\\\"revision\\\\\\\":0,\\\\\\\"last_node_id\\\\\\\":182,\\\\\\\"last_link_id\\\\\\\":197,\\\\\\\"nodes\\\\\\\":[{\\\\\\\"id\\\\\\\":9,\\\\\\\"type\\\\\\\":\\\\\\\"VAEDecodeAudio\\\\\\\",\\\\\\\"pos\\\\\\\":[682.4856559547453,-636.1074128925762],\\\\\\\"size\\\\\\\":[290,60],\\\\\\\"flags\\\\\\\":{\\\\\\\"disabled\\\\\\\":false},\\\\\\\"order\\\\\\\":24,\\\\\\\"mode\\\\\\\":4,\\\\\\\"inputs\\\\\\\":[{\\\\\\\"localized_name\\\\\\\":\\\\\\\"Latent\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"samples\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"LATENT\\\\\\\",\\\\\\\"link\\\\\\\":9},{\\\\\\\"localized_name\\\\\\\":\"},{\"k\":\"kay-gululu-state\",\"v\":\"{\\\"left\\\":100,\\\"top\\\":100,\\\"transform\\\":\\\"scaleX(1)\\\"}\"},{\"k\":\"Comfy.Workflow.Draft.v2:personal:71bb57e4\",\"v\":\"{\\\"data\\\":\\\"{\\\\\\\"id\\\\\\\":\\\\\\\"d0c48408-6ccd-40cf-804d-814d988025df\\\\\\\",\\\\\\\"revision\\\\\\\":0,\\\\\\\"last_node_id\\\\\\\":708,\\\\\\\"last_link_id\\\\\\\":862,\\\\\\\"nodes\\\\\\\":[{\\\\\\\"id\\\\\\\":185,\\\\\\\"type\\\\\\\":\\\\\\\"Any Switch (rgthree)\\\\\\\",\\\\\\\"pos\\\\\\\":[-480,-930],\\\\\\\"size\\\\\\\":[210,110],\\\\\\\"flags\\\\\\\":{},\\\\\\\"order\\\\\\\":30,\\\\\\\"mode\\\\\\\":0,\\\\\\\"inputs\\\\\\\":[{\\\\\\\"dir\\\\\\\":3,\\\\\\\"label\\\\\\\":\\\\\\\"\u8f93\u5165_01\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"any_01\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"STRING\\\\\\\",\\\\\\\"link\\\\\\\":426},{\\\\\\\"dir\\\\\\\":3,\\\\\\\"label\\\\\\\":\\\\\\\"\u8f93\u5165_02\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"any_02\\\\\\\",\\\\\\\"ty\"},{\"k\":\"comfy.versionMismatch.dismissals\",\"v\":\"{}\"},{\"k\":\"Comfy.Workflow.LastActivePath:personal\",\"v\":\"{\\\"workspaceId\\\":\\\"personal\\\",\\\"path\\\":\\\"workflows/minimaxH3/YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json\\\"}\"}],\"sw\":[],\"cacheKeys\":[],\"allLS\":[\"Comfy.ConflictModalDismissed\",\"pysssss.ImageFeed.FeedSize\",\"KayResourceMonitorPosition\",\"Comfy.Workflow.Draft.v2:personal:33157666\",\"Comfy.MenuPosition.Docked\",\"Comfy.Assets.Sidebar.ViewMode\",\"Comfy.ConflictWarningBannerDismissed\",\"litegrapheditor_clipboard\",\"Comfy.Workflow.Draft.v2:personal:c6114bea\",\"KayResourceMonitorSize\",\"Comfy.Workflow.DraftIndex.v2:personal\",\"comfy-splash-bg\",\"PromptAssistant_history_cache_all\",\"_mixlab_system_prompt\",\"Comfy.FeatureUsage\",\"alekpet.PainterNode.SaveSettingsJson\",\"Comfy.MenuPosition.Floating\",\"pysssss.ImageFeed.Visible\",\"Comfy.ConflictRedDotDismissed\",\"pysssss.ImageFeed.ImageSize\",\"PromptAssistant.Settings.InterfaceLanguage\",\"KayNodeAlignToolbarPosition\",\"KayResourceMonitorVisible\",\"PromptAssistant_translate_cache\",\"comfy-splash-fg\",\"Comfy.Settings.Comfy.CustomColorPalettes\",\"Comfy.Workflow.Draft.v2:personal:9e9e60bc\",\"Comfy.Workflow.LastOpenPaths:personal\",\"pysssss.SnapToGrid.Guide\",\"Comfy.Workflow.Draft.v2:personal:7dde8427\",\"kay-gululu-state\",\"Comfy.Workflow.Draft.v2:personal:71bb57e4\",\"comfy.versionMismatch.dismissals\",\"Comfy.Workflow.LastActivePath:personal\"]}",
+      "{\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,700],\"dpr\":1.25,\"zoom\":0.732421875,\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1500,855],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 684px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.45,\"offset\":[-3618,-764],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":99,\"assetsLoaded\":[\"/assets/rolldown-runtime-CM1DJQSe.js\",\"/assets/index-BK-6hEfU.js\",\"/assets/vendor-datadog-CS-2l-KQ.js\",\"/assets/main-quutincS.js\",\"/assets/vendor-zod-VVDcHmp2.js\",\"/assets/vendor-vue-core-y4MynkKA.js\",\"/assets/vendor-vueuse-CIVdHFF_.js\",\"/assets/vendor-i18n-D0rAmGhT.js\",\"/assets/vendor-tiptap-hsLNqOJQ.js\",\"/assets/vendor-other-Datu7mlu.js\",\"/assets/vendor-three-C50hgRID.js\",\"/assets/src-BuZCUWi9.js\",\"/assets/Button-qFvMgVnK.js\",\"/assets/telemetry-4S7ipFsj.js\",\"/assets/vendor-reka-ui-nevGmlAS.js\",\"/assets/settingStore-DZ2-HL-F.js\",\"/assets/api-DTg5QMcw.js\",\"/assets/vendor-axios-DgTRMpBY.js\",\"/assets/devFeatureFlagOverride-Yrts6Uc_.js\",\"/assets/vendor-firebase-CaSUXJ77.js\",\"/assets/remoteConfig-De9t75S5.js\",\"/assets/toastStore-BBug5IJg.js\",\"/assets/vendor-sentry-DKQGRCOn.js\",\"/assets/types-DhLkOc6x.js\",\"/assets/i18n-hytkv797.js\",\"/assets/formatUtil-grDslll6.js\",\"/assets/commands-zuj82vPI.js\",\"/assets/main-DhMh27ya.js\",\"/assets/settings-DbZMa4PV.js\",\"/assets/useErrorHandling-C7CAE0tz.js\",\"/assets/reportError-_9x9VsPC.js\",\"/assets/refreshRemoteConfig-SkZ0Tt3i.js\",\"/assets/hostTelemetryEnabled-D8fpP684.js\",\"/assets/dialogStore-D2MuJm_r.js\",\"/assets/nodeDefs-wSfHbjZW.js\",\"/assets/userStore-DHf-Vgpg.js\",\"/assets/widgetTypes-BW7kINQW.js\",\"/assets/useFeatureFlags-CE6FmuLs.js\",\"/assets/creditsUtil-CuKRlhWA.js\",\"/assets/Popover-CV43_KKk.js\",\"/assets/vendor-markdown-Bxx3z9j-.js\",\"/assets/useModalLiftedZIndex-Bdlz-OcS.js\",\"/assets/vendor-primevue-DgZFaBSX.js\",\"/assets/downloadUtil-D7c1LGLh.js\",\"/assets/SelectValue-DEseUJH4.js\",\"/assets/ColorPicker-DEsrhiXY.js\",\"/assets/vendor-yjs-sAIneJUK.js\",\"/assets/SanitizedHtml-DxXFGG3H.js\",\"/assets/hdrFormatUtil-DtylSdx1.js\",\"/assets/useImageQuiet-BU2xlczX.js\",\"/assets/DialogHeader-B3VglWwy.js\",\"/assets/types-CpqNdv_a.js\",\"/assets/useExternalLink-BRUARALL.js\",\"/assets/envUtil-DPBXy0gR.js\",\"/assets/Input-DZWvFFvp.js\",\"/assets/Loader-4SL2a8PX.js\",\"/assets/_plugin-vue_export-helper-N9oGzAiE.js\",\"/assets/VideoPlayOverlay-Dg3Hg4z0.js\",\"/assets/useRetryableMediaSrc-ERZ_sBA-.js\",\"/assets/WaveAudioPlayer-DI4FXswN.js\",\"/assets/Slider-Ei-Lq0cL.js\",\"/assets/useTextFileContent-Blqs2aC-.js\",\"/assets/useFeatureUsageTracker-Sc4DKOWE.js\",\"/assets/Spinner-B-DnbZOy.js\",\"/assets/DialogClose-C4mNq8F7.js\",\"/assets/Switch-9_MENn5k.js\",\"/assets/LayoutDefault-smks8QUf.js\",\"/assets/oauthState-CuoABVrt.js\",\"/assets/ButtonGroup-DloW0J1K.js\",\"/assets/useConflictDetection-Cm_xV8L1.js\",\"/assets/vendor-other-CaaUC6Qe.css\",\"/assets/vRekaZIndex-BmGnnals.js\",\"/assets/paymentReturnUrl-CJee2Jcf.js\",\"/assets/settingStore-zHFWdF6T.css\",\"/assets/main-NWEiSzjK.css\",\"/assets/useConflictDetection-BzTiRNUY.css\",\"/assets/primeicons-C6QP2o4f.woff2\",\"/assets/refreshRemoteConfig-B6axYHtx.js\",\"/assets/api-DSrM-OB9.js\",\"/assets/i18n-CtbcvYfV.js\",\"/assets/GraphView-C7jM5DM_.js\",\"/assets/SubscribeToRun-CBEP90QF.js\",\"/assets/useClickDragGuard-ByD94fY5.js\",\"/assets/ScrubableNumberInput-RbtIG4CN.js\",\"/assets/curveUtils-B4Zgkmq7.js\",\"/assets/UserAvatar-CJlIEpr5.js\",\"/assets/keybindingService-jAJ_Jazb.js\",\"/assets/useTypeformEmbed-CHaMN3wW.js\",\"/assets/layout-Bo_r5A61.js\",\"/assets/loadExternalScript-CtULW-pK.js\",\"/assets/feedbackDialog-BCOu_5FM.js\",\"/assets/TypeformEmbed-Bqy5pbJL.js\",\"/assets/WorkspaceProfilePic-BONvfl6C.js\",\"/assets/usePricingTableUrlLoader-C1krvmD8.js\",\"/assets/GlobalToast-DhJPEGPn.js\",\"/assets/TopbarBadge-sj_x-jfH.js\",\"/assets/missingModelMetadata-D1zPyifp.js\",\"/assets/serverConfigStore-DRoc5z-o.js\",\"/assets/releaseStore-BU1OxVmZ.js\",\"/assets/workflowShareService-DbWA49e0.js\",\"/assets/useWorkspaceTierLabel-rvxEOgFJ.js\",\"/assets/WorkspaceSwitcherPopover-DoxDi2Zw.js\",\"/assets/useTransformState-9zJFG6Ev.js\",\"/assets/useMoreOptionsMenu-CybzcGLB.js\",\"/assets/AudioPreviewPlayer-LjgSmWtO.js\",\"/assets/AudioPreviewPlayer-DSH0K4g3.css\",\"/assets/GraphView-gadae0ZN.css\",\"/assets/useTerminalTabs-VoeIVjPI.js\",\"/assets/vendor-xterm-CeI2v19Z.js\",\"/assets/vendor-xterm-kHJ-D0s7.css\",\"/assets/useTerminalTabs-BQPyS6-n.css\",\"/assets/main-CJ3bXrRD.js\",\"/assets/nodeDefs-DIaNEaew.js\",\"/assets/commands-DkGQpw_9.js\",\"/assets/settings-CDlf4GFv.js\",\"/assets/core-B0vGWEoL.js\",\"/assets/useCompositorLayers-DGsQ7b-T.js\",\"/assets/nodeTypes-DESVVsv5.js\",\"/assets/WidgetTextPreview-B9iN9Ldj.js\",\"/assets/Textarea-CDmx5Tqr.js\",\"/assets/audioService-BUJmi8ah.js\",\"/assets/nodeTemplates-nqFWGBWs.js\",\"/assets/workflowDraftStoreV2-BrSHX5My.js\"],\"extLoaded\":[],\"lsKeys\":[{\"k\":\"Comfy.ConflictModalDismissed\",\"v\":\"false\"},{\"k\":\"pysssss.ImageFeed.FeedSize\",\"v\":\"25\"},{\"k\":\"KayResourceMonitorPosition\",\"v\":\"{\\\"left\\\":160,\\\"top\\\":799}\"},{\"k\":\"Comfy.Workflow.Draft.v2:personal:33157666\",\"v\":\"{\\\"data\\\":\\\"{\\\\\\\"id\\\\\\\":\\\\\\\"deba6ce5-ef98-43d3-bea1-2dc628b0a181\\\\\\\",\\\\\\\"revision\\\\\\\":0,\\\\\\\"last_node_id\\\\\\\":15,\\\\\\\"last_link_id\\\\\\\":20,\\\\\\\"nodes\\\\\\\":[{\\\\\\\"id\\\\\\\":1,\\\\\\\"type\\\\\\\":\\\\\\\"CLIPLoader\\\\\\\",\\\\\\\"pos\\\\\\\":[1404.6815001977866,2150.241110681896],\\\\\\\"size\\\\\\\":[478.8519265585851,161.92576984706722],\\\\\\\"flags\\\\\\\":{},\\\\\\\"order\\\\\\\":0,\\\\\\\"mode\\\\\\\":0,\\\\\\\"inputs\\\\\\\":[{\\\\\\\"localized_name\\\\\\\":\\\\\\\"CLIP\u540d\u79f0\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"clip_name\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"COMBO\\\\\\\",\\\\\\\"widget\\\\\\\":{\\\\\\\"name\\\\\\\":\\\\\\\"cli\"},{\"k\":\"Comfy.MenuPosition.Docked\",\"v\":\"true\"},{\"k\":\"Comfy.Assets.Sidebar.ViewMode\",\"v\":\"grid\"},{\"k\":\"Comfy.ConflictWarningBannerDismissed\",\"v\":\"false\"},{\"k\":\"litegrapheditor_clipboard\",\"v\":\"{\\\"nodes\\\":[{\\\"id\\\":2,\\\"type\\\":\\\"PreviewImage\\\",\\\"pos\\\":[4017.82421875,6500.646484375],\\\"size\\\":[227.56546020507812,425.911376953125],\\\"flags\\\":{},\\\"order\\\":100,\\\"mode\\\":0,\\\"inputs\\\":[{\\\"label\\\":\\\"\u56fe\u50cf\\\",\\\"localized_name\\\":\\\"\u56fe\u50cf\\\",\\\"name\\\":\\\"images\\\",\\\"type\\\":\\\"IMAGE\\\",\\\"link\\\":null}],\\\"outputs\\\":[{\\\"localized_name\\\":\\\"images\\\",\\\"name\\\":\\\"images\\\",\\\"type\\\":\\\"IMAGE\\\",\\\"links\\\":null}],\\\"properties\\\":{\\\"cnr_id\\\":\\\"comfy-core\\\",\\\"ver\\\":\\\"0.3.51\\\",\\\"Node name for S&R\\\":\"},{\"k\":\"Comfy.Workflow.Draft.v2:personal:c6114bea\",\"v\":\"{\\\"data\\\":\\\"{\\\\\\\"id\\\\\\\":\\\\\\\"eee7ca4f-9198-48dd-b48a-80b3f7191873\\\\\\\",\\\\\\\"revision\\\\\\\":0,\\\\\\\"last_node_id\\\\\\\":402,\\\\\\\"last_link_id\\\\\\\":645,\\\\\\\"nodes\\\\\\\":[{\\\\\\\"id\\\\\\\":19,\\\\\\\"type\\\\\\\":\\\\\\\"LoadImage\\\\\\\",\\\\\\\"pos\\\\\\\":[2725.342529296875,1426.5069580078125],\\\\\\\"size\\\\\\\":[463.908935546875,665.8704223632812],\\\\\\\"flags\\\\\\\":{\\\\\\\"disabled\\\\\\\":false},\\\\\\\"order\\\\\\\":0,\\\\\\\"mode\\\\\\\":0,\\\\\\\"inputs\\\\\\\":[{\\\\\\\"label\\\\\\\":\\\\\\\"image\\\\\\\",\\\\\\\"localized_name\\\\\\\":\\\\\\\"\u56fe\u50cf\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"image\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"COMB\"},{\"k\":\"KayResourceMonitorSize\",\"v\":\"{\\\"width\\\":250,\\\"height\\\":219}\"},{\"k\":\"Comfy.Workflow.DraftIndex.v2:personal\",\"v\":\"{\\\"v\\\":2,\\\"updatedAt\\\":1792592184014,\\\"order\\\":[\\\"7dde8427\\\",\\\"71bb57e4\\\",\\\"33157666\\\",\\\"9e9e60bc\\\",\\\"c6114bea\\\"],\\\"entries\\\":{\\\"33157666\\\":{\\\"name\\\":\\\"Moss/\u8fb9\u754c\u6846+moss sft\uff08node2.0\u5f00\u542f\uff09.json\\\",\\\"isTemporary\\\":false,\\\"updatedAt\\\":1792585013836,\\\"path\\\":\\\"workflows/Moss/\u8fb9\u754c\u6846+moss sft\uff08node2.0\u5f00\u542f\uff09.json\\\"},\\\"7dde8427\\\":{\\\"name\\\":\\\"yue2/1-Aiden-YuE2\u97f3\u4e50\u5de5\u4f5c\u6d41\uff01\uff01\uff01.json\\\",\\\"isTemporary\\\":false,\\\"updatedAt\\\":1792582022123,\\\"path\\\":\\\"workflows/yue2/1-Aiden-YuE2\u97f3\u4e50\u5de5\"},{\"k\":\"Comfy.FeatureUsage\",\"v\":\"{\\\"node-search\\\":{\\\"useCount\\\":7,\\\"firstUsed\\\":1791017516140,\\\"lastUsed\\\":1792576850054}}\"},{\"k\":\"Comfy.MenuPosition.Floating\",\"v\":\"{\\\"x\\\":866,\\\"y\\\":668}\"},{\"k\":\"pysssss.ImageFeed.Visible\",\"v\":\"0\"},{\"k\":\"Comfy.ConflictRedDotDismissed\",\"v\":\"false\"},{\"k\":\"pysssss.ImageFeed.ImageSize\",\"v\":\"4\"},{\"k\":\"KayNodeAlignToolbarPosition\",\"v\":\"{\\\"leftPercentage\\\":54.73633036017418,\\\"topPercentage\\\":1.4636542801772683}\"},{\"k\":\"KayResourceMonitorVisible\",\"v\":\"false\"},{\"k\":\"Comfy.Settings.Comfy.CustomColorPalettes\",\"v\":\"{\\\"obsidian\\\":{\\\"version\\\":112,\\\"id\\\":\\\"obsidian\\\",\\\"name\\\":\\\"Obsidian\\\",\\\"colors\\\":{\\\"node_slot\\\":{\\\"CLIP\\\":\\\"#FFD500\\\",\\\"CLIP_VISION\\\":\\\"#A8DADC\\\",\\\"CLIP_VISION_OUTPUT\\\":\\\"#ad7452\\\",\\\"CONDITIONING\\\":\\\"#FFA931\\\",\\\"CONTROL_NET\\\":\\\"#6EE7B7\\\",\\\"IMAGE\\\":\\\"#64B5F6\\\",\\\"LATENT\\\":\\\"#FF9CF9\\\",\\\"MASK\\\":\\\"#81C784\\\",\\\"MODEL\\\":\\\"#B39DDB\\\",\\\"STYLE_MODEL\\\":\\\"#C2FFAE\\\",\\\"VAE\\\":\\\"#FF6E6E\\\",\\\"TAESD\\\":\\\"#DCC274\\\",\\\"PIPE_LINE\\\":\\\"#7737AA\\\",\\\"PIPE_LINE_SDXL\\\":\\\"#7737AA\\\",\\\"INT\\\":\\\"#29699C\\\",\"},{\"k\":\"Comfy.Workflow.Draft.v2:personal:9e9e60bc\",\"v\":\"{\\\"data\\\":\\\"{\\\\\\\"id\\\\\\\":\\\\\\\"e3f2b845-8f2c-4b5a-9caf-eac1029d3e7e\\\\\\\",\\\\\\\"revision\\\\\\\":0,\\\\\\\"last_node_id\\\\\\\":244,\\\\\\\"last_link_id\\\\\\\":456,\\\\\\\"nodes\\\\\\\":[{\\\\\\\"id\\\\\\\":148,\\\\\\\"type\\\\\\\":\\\\\\\"ModelAttentionBackend\\\\\\\",\\\\\\\"pos\\\\\\\":[-1503.08984375,5046.6708984375],\\\\\\\"size\\\\\\\":[294.53125,86],\\\\\\\"flags\\\\\\\":{},\\\\\\\"order\\\\\\\":16,\\\\\\\"mode\\\\\\\":0,\\\\\\\"inputs\\\\\\\":[{\\\\\\\"label\\\\\\\":\\\\\\\"model\\\\\\\",\\\\\\\"localized_name\\\\\\\":\\\\\\\"model\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"model\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"MODEL\\\\\\\",\\\\\\\"link\\\\\\\":310},{\\\\\\\"label\\\\\\\":\"},{\"k\":\"Comfy.Workflow.LastOpenPaths:personal\",\"v\":\"{\\\"workspaceId\\\":\\\"personal\\\",\\\"paths\\\":[\\\"workflows/yue2/1-Aiden-YuE2\u97f3\u4e50\u5de5\u4f5c\u6d41\uff01\uff01\uff01.json\\\",\\\"workflows/minimaxH3/YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json\\\",\\\"workflows/minimaxH3/\u9ed1\u79d1\u6280\u52a0\u901f\u53cc\u91c7-self-lift\u5de5\u4f5c\u6d41.json\\\",\\\"workflows/Moss/\u8fb9\u754c\u6846+moss sft\uff08node2.0\u5f00\u542f\uff09.json\\\",\\\"workflows/Z-image/zimage\u53cc\u91c7+V2\u8d85\u5206\u653e\u5927.json\\\"],\\\"activeIndex\\\":1}\"},{\"k\":\"pysssss.SnapToGrid.Guide\",\"v\":\"{\\\"lines\\\":{\\\"enabled\\\":false,\\\"fillStyle\\\":\\\"rgba(255, 0, 0, 0.5)\\\"},\\\"block\\\":{\\\"enabled\\\":false,\\\"fillStyle\\\":\\\"rgba(0, 0, 255, 0.5)\\\"}}\"},{\"k\":\"Comfy.Workflow.Draft.v2:personal:7dde8427\",\"v\":\"{\\\"data\\\":\\\"{\\\\\\\"id\\\\\\\":\\\\\\\"9bb514c4-2d77-4cac-82f3-fb5dca2632d5\\\\\\\",\\\\\\\"revision\\\\\\\":0,\\\\\\\"last_node_id\\\\\\\":182,\\\\\\\"last_link_id\\\\\\\":197,\\\\\\\"nodes\\\\\\\":[{\\\\\\\"id\\\\\\\":9,\\\\\\\"type\\\\\\\":\\\\\\\"VAEDecodeAudio\\\\\\\",\\\\\\\"pos\\\\\\\":[682.4856559547453,-636.1074128925762],\\\\\\\"size\\\\\\\":[290,60],\\\\\\\"flags\\\\\\\":{\\\\\\\"disabled\\\\\\\":false},\\\\\\\"order\\\\\\\":24,\\\\\\\"mode\\\\\\\":4,\\\\\\\"inputs\\\\\\\":[{\\\\\\\"localized_name\\\\\\\":\\\\\\\"Latent\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"samples\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"LATENT\\\\\\\",\\\\\\\"link\\\\\\\":9},{\\\\\\\"localized_name\\\\\\\":\"},{\"k\":\"kay-gululu-state\",\"v\":\"{\\\"left\\\":100,\\\"top\\\":100,\\\"transform\\\":\\\"scaleX(1)\\\"}\"},{\"k\":\"Comfy.Workflow.Draft.v2:personal:71bb57e4\",\"v\":\"{\\\"data\\\":\\\"{\\\\\\\"id\\\\\\\":\\\\\\\"d0c48408-6ccd-40cf-804d-814d988025df\\\\\\\",\\\\\\\"revision\\\\\\\":0,\\\\\\\"last_node_id\\\\\\\":708,\\\\\\\"last_link_id\\\\\\\":862,\\\\\\\"nodes\\\\\\\":[{\\\\\\\"id\\\\\\\":185,\\\\\\\"type\\\\\\\":\\\\\\\"Any Switch (rgthree)\\\\\\\",\\\\\\\"pos\\\\\\\":[-480,-930],\\\\\\\"size\\\\\\\":[210,110],\\\\\\\"flags\\\\\\\":{},\\\\\\\"order\\\\\\\":30,\\\\\\\"mode\\\\\\\":0,\\\\\\\"inputs\\\\\\\":[{\\\\\\\"dir\\\\\\\":3,\\\\\\\"label\\\\\\\":\\\\\\\"\u8f93\u5165_01\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"any_01\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"STRING\\\\\\\",\\\\\\\"link\\\\\\\":426},{\\\\\\\"dir\\\\\\\":3,\\\\\\\"label\\\\\\\":\\\\\\\"\u8f93\u5165_02\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"any_02\\\\\\\",\\\\\\\"ty\"},{\"k\":\"comfy.versionMismatch.dismissals\",\"v\":\"{}\"},{\"k\":\"Comfy.Workflow.LastActivePath:personal\",\"v\":\"{\\\"workspaceId\\\":\\\"personal\\\",\\\"path\\\":\\\"workflows/minimaxH3/YZ\u91d1\u9c7c-MiniMax+H3+\u7ec8\u6781\u7bc7-\u6587\u6b66\u53cc\u5168.json\\\"}\"}],\"sw\":[],\"cacheKeys\":[],\"allLS\":[\"Comfy.ConflictModalDismissed\",\"pysssss.ImageFeed.FeedSize\",\"KayResourceMonitorPosition\",\"Comfy.Workflow.Draft.v2:personal:33157666\",\"Comfy.MenuPosition.Docked\",\"Comfy.Assets.Sidebar.ViewMode\",\"Comfy.ConflictWarningBannerDismissed\",\"litegrapheditor_clipboard\",\"Comfy.Workflow.Draft.v2:personal:c6114bea\",\"KayResourceMonitorSize\",\"Comfy.Workflow.DraftIndex.v2:personal\",\"comfy-splash-bg\",\"PromptAssistant_history_cache_all\",\"_mixlab_system_prompt\",\"Comfy.FeatureUsage\",\"alekpet.PainterNode.SaveSettingsJson\",\"Comfy.MenuPosition.Floating\",\"pysssss.ImageFeed.Visible\",\"Comfy.ConflictRedDotDismissed\",\"pysssss.ImageFeed.ImageSize\",\"PromptAssistant.Settings.InterfaceLanguage\",\"KayNodeAlignToolbarPosition\",\"KayResourceMonitorVisible\",\"PromptAssistant_translate_cache\",\"comfy-splash-fg\",\"Comfy.Settings.Comfy.CustomColorPalettes\",\"Comfy.Workflow.Draft.v2:personal:9e9e60bc\",\"Comfy.Workflow.LastOpenPaths:personal\",\"pysssss.SnapToGrid.Guide\",\"Comfy.Workflow.Draft.v2:personal:7dde8427\",\"kay-gululu-state\",\"Comfy.Workflow.Draft.v2:personal:71bb57e4\",\"comfy.versionMismatch.dismissals\",\"Comfy.Workflow.LastActivePath:personal\"]}"
+    ]
+  },
+  "__wmd_canvas_probe__": {
+    "last_used": 1792597590.2175987,
+    "workflows": [
+      "{\"t\":\"2026-10-21T15:45:18.211Z\",\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,699],\"outer\":[2048,1104],\"dpr\":0.9375,\"screen\":[2048,1152],\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1200,684],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"cssSize\":{\"w\":\"1200px\",\"h\":\"683.733px\",\"pos\":\"absolute\",\"transform\":\"none\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 683.733px 0px\",\"bodyRect\":{\"w\":1200,\"h\":700,\"x\":0,\"y\":0},\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.15772,\"offset\":[2976,-2954],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":33,\"nodeBounds\":null,\"hitTest\":{\"topLeft\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"topRight\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"bottomLeft\":{\"tag\":\"BUTTON\",\"id\":\"\",\"cls\":\"relative inline-flex items-center justify-center gap-2 touch-manipulat\"},\"center\":{\"tag\":\"CANVAS\",\"id\":\"graph-canvas\",\"cls\":\"absolute inset-0 size-full touch-none lgraphcanvas\"}},\"canvasVisible\":true,\"canvasZ\":\"auto\"}",
+      "{\"t\":\"2026-10-21T15:45:26.213Z\",\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,699],\"outer\":[2048,1104],\"dpr\":0.9375,\"screen\":[2048,1152],\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1200,684],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"cssSize\":{\"w\":\"1200px\",\"h\":\"683.733px\",\"pos\":\"absolute\",\"transform\":\"none\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 683.733px 0px\",\"bodyRect\":{\"w\":1200,\"h\":700,\"x\":0,\"y\":0},\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.15772,\"offset\":[2976,-2954],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":33,\"nodeBounds\":null,\"hitTest\":{\"topLeft\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"topRight\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"bottomLeft\":{\"tag\":\"BUTTON\",\"id\":\"\",\"cls\":\"relative inline-flex items-center justify-center gap-2 touch-manipulat\"},\"center\":{\"tag\":\"CANVAS\",\"id\":\"graph-canvas\",\"cls\":\"absolute inset-0 size-full touch-none lgraphcanvas\"}},\"canvasVisible\":true,\"canvasZ\":\"auto\"}",
+      "{\"t\":\"2026-10-21T15:45:34.211Z\",\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,699],\"outer\":[2048,1104],\"dpr\":0.9375,\"screen\":[2048,1152],\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1200,684],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"cssSize\":{\"w\":\"1200px\",\"h\":\"683.733px\",\"pos\":\"absolute\",\"transform\":\"none\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 683.733px 0px\",\"bodyRect\":{\"w\":1200,\"h\":700,\"x\":0,\"y\":0},\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.15772,\"offset\":[2976,-2954],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":33,\"nodeBounds\":null,\"hitTest\":{\"topLeft\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"topRight\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"bottomLeft\":{\"tag\":\"BUTTON\",\"id\":\"\",\"cls\":\"relative inline-flex items-center justify-center gap-2 touch-manipulat\"},\"center\":{\"tag\":\"CANVAS\",\"id\":\"graph-canvas\",\"cls\":\"absolute inset-0 size-full touch-none lgraphcanvas\"}},\"canvasVisible\":true,\"canvasZ\":\"auto\"}",
+      "{\"t\":\"2026-10-21T15:45:42.211Z\",\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,699],\"outer\":[2048,1104],\"dpr\":0.9375,\"screen\":[2048,1152],\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1200,684],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"cssSize\":{\"w\":\"1200px\",\"h\":\"683.733px\",\"pos\":\"absolute\",\"transform\":\"none\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 683.733px 0px\",\"bodyRect\":{\"w\":1200,\"h\":700,\"x\":0,\"y\":0},\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.15772,\"offset\":[2976,-2954],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":33,\"nodeBounds\":null,\"hitTest\":{\"topLeft\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"topRight\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"bottomLeft\":{\"tag\":\"BUTTON\",\"id\":\"\",\"cls\":\"relative inline-flex items-center justify-center gap-2 touch-manipulat\"},\"center\":{\"tag\":\"CANVAS\",\"id\":\"graph-canvas\",\"cls\":\"absolute inset-0 size-full touch-none lgraphcanvas\"}},\"canvasVisible\":true,\"canvasZ\":\"auto\"}",
+      "{\"t\":\"2026-10-21T15:45:50.211Z\",\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,699],\"outer\":[2048,1104],\"dpr\":0.9375,\"screen\":[2048,1152],\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1200,684],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"cssSize\":{\"w\":\"1200px\",\"h\":\"683.733px\",\"pos\":\"absolute\",\"transform\":\"none\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 683.733px 0px\",\"bodyRect\":{\"w\":1200,\"h\":700,\"x\":0,\"y\":0},\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.15772,\"offset\":[2976,-2954],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":33,\"nodeBounds\":null,\"hitTest\":{\"topLeft\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"topRight\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"bottomLeft\":{\"tag\":\"BUTTON\",\"id\":\"\",\"cls\":\"relative inline-flex items-center justify-center gap-2 touch-manipulat\"},\"center\":{\"tag\":\"CANVAS\",\"id\":\"graph-canvas\",\"cls\":\"absolute inset-0 size-full touch-none lgraphcanvas\"}},\"canvasVisible\":true,\"canvasZ\":\"auto\"}",
+      "{\"t\":\"2026-10-21T15:45:58.210Z\",\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,699],\"outer\":[2048,1104],\"dpr\":0.9375,\"screen\":[2048,1152],\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1200,684],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"cssSize\":{\"w\":\"1200px\",\"h\":\"683.733px\",\"pos\":\"absolute\",\"transform\":\"none\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 683.733px 0px\",\"bodyRect\":{\"w\":1200,\"h\":700,\"x\":0,\"y\":0},\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.15772,\"offset\":[2976,-2954],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":33,\"nodeBounds\":null,\"hitTest\":{\"topLeft\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"topRight\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"bottomLeft\":{\"tag\":\"BUTTON\",\"id\":\"\",\"cls\":\"relative inline-flex items-center justify-center gap-2 touch-manipulat\"},\"center\":{\"tag\":\"CANVAS\",\"id\":\"graph-canvas\",\"cls\":\"absolute inset-0 size-full touch-none lgraphcanvas\"}},\"canvasVisible\":true,\"canvasZ\":\"auto\"}",
+      "{\"t\":\"2026-10-21T15:46:06.210Z\",\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,699],\"outer\":[2048,1104],\"dpr\":0.9375,\"screen\":[2048,1152],\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1200,684],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"cssSize\":{\"w\":\"1200px\",\"h\":\"683.733px\",\"pos\":\"absolute\",\"transform\":\"none\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 683.733px 0px\",\"bodyRect\":{\"w\":1200,\"h\":700,\"x\":0,\"y\":0},\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.15772,\"offset\":[2976,-2954],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":33,\"nodeBounds\":null,\"hitTest\":{\"topLeft\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"topRight\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"bottomLeft\":{\"tag\":\"BUTTON\",\"id\":\"\",\"cls\":\"relative inline-flex items-center justify-center gap-2 touch-manipulat\"},\"center\":{\"tag\":\"CANVAS\",\"id\":\"graph-canvas\",\"cls\":\"absolute inset-0 size-full touch-none lgraphcanvas\"}},\"canvasVisible\":true,\"canvasZ\":\"auto\"}",
+      "{\"t\":\"2026-10-21T15:46:14.211Z\",\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,699],\"outer\":[2048,1104],\"dpr\":0.9375,\"screen\":[2048,1152],\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1200,684],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"cssSize\":{\"w\":\"1200px\",\"h\":\"683.733px\",\"pos\":\"absolute\",\"transform\":\"none\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 683.733px 0px\",\"bodyRect\":{\"w\":1200,\"h\":700,\"x\":0,\"y\":0},\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.15772,\"offset\":[2976,-2954],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":33,\"nodeBounds\":null,\"hitTest\":{\"topLeft\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"topRight\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"bottomLeft\":{\"tag\":\"BUTTON\",\"id\":\"\",\"cls\":\"relative inline-flex items-center justify-center gap-2 touch-manipulat\"},\"center\":{\"tag\":\"CANVAS\",\"id\":\"graph-canvas\",\"cls\":\"absolute inset-0 size-full touch-none lgraphcanvas\"}},\"canvasVisible\":true,\"canvasZ\":\"auto\"}",
+      "{\"t\":\"2026-10-21T15:46:22.211Z\",\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,699],\"outer\":[2048,1104],\"dpr\":0.9375,\"screen\":[2048,1152],\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1200,684],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"cssSize\":{\"w\":\"1200px\",\"h\":\"683.733px\",\"pos\":\"absolute\",\"transform\":\"none\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 683.733px 0px\",\"bodyRect\":{\"w\":1200,\"h\":700,\"x\":0,\"y\":0},\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.15772,\"offset\":[2976,-2954],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":33,\"nodeBounds\":null,\"hitTest\":{\"topLeft\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"topRight\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"bottomLeft\":{\"tag\":\"BUTTON\",\"id\":\"\",\"cls\":\"relative inline-flex items-center justify-center gap-2 touch-manipulat\"},\"center\":{\"tag\":\"CANVAS\",\"id\":\"graph-canvas\",\"cls\":\"absolute inset-0 size-full touch-none lgraphcanvas\"}},\"canvasVisible\":true,\"canvasZ\":\"auto\"}",
+      "{\"t\":\"2026-10-21T15:46:30.212Z\",\"ua\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\",\"win\":[1200,699],\"outer\":[2048,1104],\"dpr\":0.9375,\"screen\":[2048,1152],\"container\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":1200,\"h\":684,\"x\":0,\"y\":16},\"backing\":[1200,684],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"cssSize\":{\"w\":\"1200px\",\"h\":\"683.733px\",\"pos\":\"absolute\",\"transform\":\"none\"},\"gridCols\":\"0px 1200px 0px\",\"gridRows\":\"16px 683.733px 0px\",\"bodyRect\":{\"w\":1200,\"h\":700,\"x\":0,\"y\":0},\"rightPanel\":{\"rect\":{\"w\":0,\"h\":684,\"x\":1200,\"y\":16},\"display\":\"block\",\"vis\":\"visible\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":1200,\"h\":0,\"x\":0,\"y\":700},\"display\":\"flex\"},\"agentPanel\":false,\"ds\":{\"scale\":0.15772,\"offset\":[2976,-2954],\"vp\":[1200,684],\"vpCache\":[1200,684]},\"nodes\":33,\"nodeBounds\":null,\"hitTest\":{\"topLeft\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"topRight\":{\"tag\":\"RGTHREE-PROGRESS-BAR\",\"id\":\"\",\"cls\":\"\"},\"bottomLeft\":{\"tag\":\"BUTTON\",\"id\":\"\",\"cls\":\"relative inline-flex items-center justify-center gap-2 touch-manipulat\"},\"center\":{\"tag\":\"CANVAS\",\"id\":\"graph-canvas\",\"cls\":\"absolute inset-0 size-full touch-none lgraphcanvas\"}},\"canvasVisible\":true,\"canvasZ\":\"auto\"}"
+    ]
+  },
+  "__wmd_canvas_probe3__": {
+    "last_used": 1792597556.217174,
+    "workflows": [
+      "{\"tag\":\"steady\",\"t\":\"2026-10-21T15:36:56.199Z\",\"win\":[2730,1356],\"dpr\":0.9375,\"container\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"bg\":{\"w\":2731,\"h\":1341,\"cssW\":\"(none)\",\"cssH\":\"(none)\"},\"backing\":[2731,1341],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 2730.67px 0px\",\"gridRows\":\"16px 1340.8px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16},\"display\":\"block\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357},\"display\":\"flex\"},\"agentPanel\":false,\"dsVisibleArea\":{\"x\":-1009,\"y\":-1629,\"w\":6068,\"h\":2980},\"ds\":{\"scale\":0.45,\"offset\":[1009,1629],\"vp\":[2731,1341],\"vpCache\":[2731,1341]},\"nodeCount\":28,\"nodeTypes\":[\"VAEDecodeAudio\",\"EmptyYuE2LatentAudio\",\"YuE2GenerateABC\",\"AudioEncoderLoader\",\"CheckpointLoaderSimple\"],\"nodeBox\":{\"x\":483,\"y\":1237,\"w\":2460,\"h\":407},\"mismatch\":{\"nodeSpan\":[2943,1644],\"canvasSpan\":[2731,1357],\"overflowRight\":212,\"overflowBottom\":287},\"overlays\":[{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute top-0 left-0 z-999 fl\",\"pos\":\"absolute\",\"z\":\"999\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2659,\"h\":1231,\"x\":64,\"y\":118},\"parent\":\"p-splitterpanel graph-canvas-panel relat\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"ph-no-capture pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":1229,\"h\":603,\"x\":454,\"y\":749},\"parent\":\"graph-canvas-container\"},{\"tag\":\"CANVAS\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0 size-full\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"}],\"siblings\":[{\"tag\":\"DIV\",\"id\":\"comfyui-body-top\",\"cls\":\"comfyui-body-top\",\"gridArea\":\"1 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":16,\"x\":0,\"y\":0}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-bottom\",\"cls\":\"comfyui-body-bottom\",\"gridArea\":\"3 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-left\",\"cls\":\"comfyui-body-left\",\"gridArea\":\"2 / 1\",\"display\":\"flex\",\"rect\":{\"w\":0,\"h\":1341,\"x\":0,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-right\",\"cls\":\"comfyui-body-right\",\"gridArea\":\"2 / 3\",\"display\":\"block\",\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"graph-canvas-container\",\"cls\":\"graph-canvas-container\",\"gridArea\":\"2 / 2\",\"display\":\"block\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16}}]}",
+      "{\"tag\":\"steady\",\"t\":\"2026-10-21T15:37:56.200Z\",\"win\":[2730,1356],\"dpr\":0.9375,\"container\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"bg\":{\"w\":2731,\"h\":1341,\"cssW\":\"(none)\",\"cssH\":\"(none)\"},\"backing\":[2731,1341],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 2730.67px 0px\",\"gridRows\":\"16px 1340.8px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16},\"display\":\"block\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357},\"display\":\"flex\"},\"agentPanel\":false,\"dsVisibleArea\":{\"x\":-1009,\"y\":-1629,\"w\":6068,\"h\":2980},\"ds\":{\"scale\":0.45,\"offset\":[1009,1629],\"vp\":[2731,1341],\"vpCache\":[2731,1341]},\"nodeCount\":28,\"nodeTypes\":[\"VAEDecodeAudio\",\"EmptyYuE2LatentAudio\",\"YuE2GenerateABC\",\"AudioEncoderLoader\",\"CheckpointLoaderSimple\"],\"nodeBox\":{\"x\":483,\"y\":1237,\"w\":2460,\"h\":407},\"mismatch\":{\"nodeSpan\":[2943,1644],\"canvasSpan\":[2731,1357],\"overflowRight\":212,\"overflowBottom\":287},\"overlays\":[{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute top-0 left-0 z-999 fl\",\"pos\":\"absolute\",\"z\":\"999\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2659,\"h\":1231,\"x\":64,\"y\":118},\"parent\":\"p-splitterpanel graph-canvas-panel relat\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"ph-no-capture pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":1229,\"h\":603,\"x\":454,\"y\":749},\"parent\":\"graph-canvas-container\"},{\"tag\":\"CANVAS\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0 size-full\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"}],\"siblings\":[{\"tag\":\"DIV\",\"id\":\"comfyui-body-top\",\"cls\":\"comfyui-body-top\",\"gridArea\":\"1 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":16,\"x\":0,\"y\":0}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-bottom\",\"cls\":\"comfyui-body-bottom\",\"gridArea\":\"3 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-left\",\"cls\":\"comfyui-body-left\",\"gridArea\":\"2 / 1\",\"display\":\"flex\",\"rect\":{\"w\":0,\"h\":1341,\"x\":0,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-right\",\"cls\":\"comfyui-body-right\",\"gridArea\":\"2 / 3\",\"display\":\"block\",\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"graph-canvas-container\",\"cls\":\"graph-canvas-container\",\"gridArea\":\"2 / 2\",\"display\":\"block\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16}}]}",
+      "{\"tag\":\"steady\",\"t\":\"2026-10-21T15:38:56.211Z\",\"win\":[2730,1356],\"dpr\":0.9375,\"container\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"bg\":{\"w\":2731,\"h\":1341,\"cssW\":\"(none)\",\"cssH\":\"(none)\"},\"backing\":[2731,1341],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 2730.67px 0px\",\"gridRows\":\"16px 1340.8px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16},\"display\":\"block\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357},\"display\":\"flex\"},\"agentPanel\":false,\"dsVisibleArea\":{\"x\":-1009,\"y\":-1629,\"w\":6068,\"h\":2980},\"ds\":{\"scale\":0.45,\"offset\":[1009,1629],\"vp\":[2731,1341],\"vpCache\":[2731,1341]},\"nodeCount\":28,\"nodeTypes\":[\"VAEDecodeAudio\",\"EmptyYuE2LatentAudio\",\"YuE2GenerateABC\",\"AudioEncoderLoader\",\"CheckpointLoaderSimple\"],\"nodeBox\":{\"x\":483,\"y\":1237,\"w\":2460,\"h\":407},\"mismatch\":{\"nodeSpan\":[2943,1644],\"canvasSpan\":[2731,1357],\"overflowRight\":212,\"overflowBottom\":287},\"overlays\":[{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute top-0 left-0 z-999 fl\",\"pos\":\"absolute\",\"z\":\"999\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2659,\"h\":1231,\"x\":64,\"y\":118},\"parent\":\"p-splitterpanel graph-canvas-panel relat\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"ph-no-capture pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":1229,\"h\":603,\"x\":454,\"y\":749},\"parent\":\"graph-canvas-container\"},{\"tag\":\"CANVAS\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0 size-full\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"}],\"siblings\":[{\"tag\":\"DIV\",\"id\":\"comfyui-body-top\",\"cls\":\"comfyui-body-top\",\"gridArea\":\"1 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":16,\"x\":0,\"y\":0}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-bottom\",\"cls\":\"comfyui-body-bottom\",\"gridArea\":\"3 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-left\",\"cls\":\"comfyui-body-left\",\"gridArea\":\"2 / 1\",\"display\":\"flex\",\"rect\":{\"w\":0,\"h\":1341,\"x\":0,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-right\",\"cls\":\"comfyui-body-right\",\"gridArea\":\"2 / 3\",\"display\":\"block\",\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"graph-canvas-container\",\"cls\":\"graph-canvas-container\",\"gridArea\":\"2 / 2\",\"display\":\"block\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16}}]}",
+      "{\"tag\":\"steady\",\"t\":\"2026-10-21T15:39:56.197Z\",\"win\":[2730,1356],\"dpr\":0.9375,\"container\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"bg\":{\"w\":2731,\"h\":1341,\"cssW\":\"(none)\",\"cssH\":\"(none)\"},\"backing\":[2731,1341],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 2730.67px 0px\",\"gridRows\":\"16px 1340.8px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16},\"display\":\"block\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357},\"display\":\"flex\"},\"agentPanel\":false,\"dsVisibleArea\":{\"x\":-1009,\"y\":-1629,\"w\":6068,\"h\":2980},\"ds\":{\"scale\":0.45,\"offset\":[1009,1629],\"vp\":[2731,1341],\"vpCache\":[2731,1341]},\"nodeCount\":28,\"nodeTypes\":[\"VAEDecodeAudio\",\"EmptyYuE2LatentAudio\",\"YuE2GenerateABC\",\"AudioEncoderLoader\",\"CheckpointLoaderSimple\"],\"nodeBox\":{\"x\":483,\"y\":1237,\"w\":2460,\"h\":407},\"mismatch\":{\"nodeSpan\":[2943,1644],\"canvasSpan\":[2731,1357],\"overflowRight\":212,\"overflowBottom\":287},\"overlays\":[{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute top-0 left-0 z-999 fl\",\"pos\":\"absolute\",\"z\":\"999\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2659,\"h\":1231,\"x\":64,\"y\":118},\"parent\":\"p-splitterpanel graph-canvas-panel relat\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"ph-no-capture pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":1229,\"h\":603,\"x\":454,\"y\":749},\"parent\":\"graph-canvas-container\"},{\"tag\":\"CANVAS\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0 size-full\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"}],\"siblings\":[{\"tag\":\"DIV\",\"id\":\"comfyui-body-top\",\"cls\":\"comfyui-body-top\",\"gridArea\":\"1 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":16,\"x\":0,\"y\":0}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-bottom\",\"cls\":\"comfyui-body-bottom\",\"gridArea\":\"3 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-left\",\"cls\":\"comfyui-body-left\",\"gridArea\":\"2 / 1\",\"display\":\"flex\",\"rect\":{\"w\":0,\"h\":1341,\"x\":0,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-right\",\"cls\":\"comfyui-body-right\",\"gridArea\":\"2 / 3\",\"display\":\"block\",\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"graph-canvas-container\",\"cls\":\"graph-canvas-container\",\"gridArea\":\"2 / 2\",\"display\":\"block\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16}}]}",
+      "{\"tag\":\"steady\",\"t\":\"2026-10-21T15:40:56.202Z\",\"win\":[2730,1356],\"dpr\":0.9375,\"container\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"bg\":{\"w\":2731,\"h\":1341,\"cssW\":\"(none)\",\"cssH\":\"(none)\"},\"backing\":[2731,1341],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 2730.67px 0px\",\"gridRows\":\"16px 1340.8px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16},\"display\":\"block\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357},\"display\":\"flex\"},\"agentPanel\":false,\"dsVisibleArea\":{\"x\":-1009,\"y\":-1629,\"w\":6068,\"h\":2980},\"ds\":{\"scale\":0.45,\"offset\":[1009,1629],\"vp\":[2731,1341],\"vpCache\":[2731,1341]},\"nodeCount\":28,\"nodeTypes\":[\"VAEDecodeAudio\",\"EmptyYuE2LatentAudio\",\"YuE2GenerateABC\",\"AudioEncoderLoader\",\"CheckpointLoaderSimple\"],\"nodeBox\":{\"x\":483,\"y\":1237,\"w\":2460,\"h\":407},\"mismatch\":{\"nodeSpan\":[2943,1644],\"canvasSpan\":[2731,1357],\"overflowRight\":212,\"overflowBottom\":287},\"overlays\":[{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute top-0 left-0 z-999 fl\",\"pos\":\"absolute\",\"z\":\"999\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2659,\"h\":1231,\"x\":64,\"y\":118},\"parent\":\"p-splitterpanel graph-canvas-panel relat\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"ph-no-capture pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":1229,\"h\":603,\"x\":454,\"y\":749},\"parent\":\"graph-canvas-container\"},{\"tag\":\"CANVAS\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0 size-full\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"}],\"siblings\":[{\"tag\":\"DIV\",\"id\":\"comfyui-body-top\",\"cls\":\"comfyui-body-top\",\"gridArea\":\"1 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":16,\"x\":0,\"y\":0}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-bottom\",\"cls\":\"comfyui-body-bottom\",\"gridArea\":\"3 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-left\",\"cls\":\"comfyui-body-left\",\"gridArea\":\"2 / 1\",\"display\":\"flex\",\"rect\":{\"w\":0,\"h\":1341,\"x\":0,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-right\",\"cls\":\"comfyui-body-right\",\"gridArea\":\"2 / 3\",\"display\":\"block\",\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"graph-canvas-container\",\"cls\":\"graph-canvas-container\",\"gridArea\":\"2 / 2\",\"display\":\"block\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16}}]}",
+      "{\"tag\":\"steady\",\"t\":\"2026-10-21T15:41:56.210Z\",\"win\":[2730,1356],\"dpr\":0.9375,\"container\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"bg\":{\"w\":2731,\"h\":1341,\"cssW\":\"(none)\",\"cssH\":\"(none)\"},\"backing\":[2731,1341],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 2730.67px 0px\",\"gridRows\":\"16px 1340.8px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16},\"display\":\"block\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357},\"display\":\"flex\"},\"agentPanel\":false,\"dsVisibleArea\":{\"x\":-1009,\"y\":-1629,\"w\":6068,\"h\":2980},\"ds\":{\"scale\":0.45,\"offset\":[1009,1629],\"vp\":[2731,1341],\"vpCache\":[2731,1341]},\"nodeCount\":28,\"nodeTypes\":[\"VAEDecodeAudio\",\"EmptyYuE2LatentAudio\",\"YuE2GenerateABC\",\"AudioEncoderLoader\",\"CheckpointLoaderSimple\"],\"nodeBox\":{\"x\":483,\"y\":1237,\"w\":2460,\"h\":407},\"mismatch\":{\"nodeSpan\":[2943,1644],\"canvasSpan\":[2731,1357],\"overflowRight\":212,\"overflowBottom\":287},\"overlays\":[{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute top-0 left-0 z-999 fl\",\"pos\":\"absolute\",\"z\":\"999\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2659,\"h\":1231,\"x\":64,\"y\":118},\"parent\":\"p-splitterpanel graph-canvas-panel relat\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"ph-no-capture pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":1229,\"h\":603,\"x\":454,\"y\":749},\"parent\":\"graph-canvas-container\"},{\"tag\":\"CANVAS\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0 size-full\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"}],\"siblings\":[{\"tag\":\"DIV\",\"id\":\"comfyui-body-top\",\"cls\":\"comfyui-body-top\",\"gridArea\":\"1 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":16,\"x\":0,\"y\":0}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-bottom\",\"cls\":\"comfyui-body-bottom\",\"gridArea\":\"3 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-left\",\"cls\":\"comfyui-body-left\",\"gridArea\":\"2 / 1\",\"display\":\"flex\",\"rect\":{\"w\":0,\"h\":1341,\"x\":0,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-right\",\"cls\":\"comfyui-body-right\",\"gridArea\":\"2 / 3\",\"display\":\"block\",\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"graph-canvas-container\",\"cls\":\"graph-canvas-container\",\"gridArea\":\"2 / 2\",\"display\":\"block\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16}}]}",
+      "{\"tag\":\"steady\",\"t\":\"2026-10-21T15:42:56.209Z\",\"win\":[2730,1356],\"dpr\":0.9375,\"container\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"bg\":{\"w\":2731,\"h\":1341,\"cssW\":\"(none)\",\"cssH\":\"(none)\"},\"backing\":[2731,1341],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 2730.67px 0px\",\"gridRows\":\"16px 1340.8px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16},\"display\":\"block\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357},\"display\":\"flex\"},\"agentPanel\":false,\"dsVisibleArea\":{\"x\":-1009,\"y\":-1629,\"w\":6068,\"h\":2980},\"ds\":{\"scale\":0.45,\"offset\":[1009,1629],\"vp\":[2731,1341],\"vpCache\":[2731,1341]},\"nodeCount\":28,\"nodeTypes\":[\"VAEDecodeAudio\",\"EmptyYuE2LatentAudio\",\"YuE2GenerateABC\",\"AudioEncoderLoader\",\"CheckpointLoaderSimple\"],\"nodeBox\":{\"x\":483,\"y\":1237,\"w\":2460,\"h\":407},\"mismatch\":{\"nodeSpan\":[2943,1644],\"canvasSpan\":[2731,1357],\"overflowRight\":212,\"overflowBottom\":287},\"overlays\":[{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute top-0 left-0 z-999 fl\",\"pos\":\"absolute\",\"z\":\"999\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2659,\"h\":1231,\"x\":64,\"y\":118},\"parent\":\"p-splitterpanel graph-canvas-panel relat\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"ph-no-capture pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":1229,\"h\":603,\"x\":454,\"y\":749},\"parent\":\"graph-canvas-container\"},{\"tag\":\"CANVAS\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0 size-full\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"}],\"siblings\":[{\"tag\":\"DIV\",\"id\":\"comfyui-body-top\",\"cls\":\"comfyui-body-top\",\"gridArea\":\"1 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":16,\"x\":0,\"y\":0}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-bottom\",\"cls\":\"comfyui-body-bottom\",\"gridArea\":\"3 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-left\",\"cls\":\"comfyui-body-left\",\"gridArea\":\"2 / 1\",\"display\":\"flex\",\"rect\":{\"w\":0,\"h\":1341,\"x\":0,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-right\",\"cls\":\"comfyui-body-right\",\"gridArea\":\"2 / 3\",\"display\":\"block\",\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"graph-canvas-container\",\"cls\":\"graph-canvas-container\",\"gridArea\":\"2 / 2\",\"display\":\"block\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16}}]}",
+      "{\"tag\":\"steady\",\"t\":\"2026-10-21T15:43:56.211Z\",\"win\":[2730,1356],\"dpr\":0.9375,\"container\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"bg\":{\"w\":2731,\"h\":1341,\"cssW\":\"(none)\",\"cssH\":\"(none)\"},\"backing\":[2731,1341],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 2730.67px 0px\",\"gridRows\":\"16px 1340.8px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16},\"display\":\"block\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357},\"display\":\"flex\"},\"agentPanel\":false,\"dsVisibleArea\":{\"x\":-1009,\"y\":-1629,\"w\":6068,\"h\":2980},\"ds\":{\"scale\":0.45,\"offset\":[1009,1629],\"vp\":[2731,1341],\"vpCache\":[2731,1341]},\"nodeCount\":28,\"nodeTypes\":[\"VAEDecodeAudio\",\"EmptyYuE2LatentAudio\",\"YuE2GenerateABC\",\"AudioEncoderLoader\",\"CheckpointLoaderSimple\"],\"nodeBox\":{\"x\":483,\"y\":1237,\"w\":2460,\"h\":407},\"mismatch\":{\"nodeSpan\":[2943,1644],\"canvasSpan\":[2731,1357],\"overflowRight\":212,\"overflowBottom\":287},\"overlays\":[{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute top-0 left-0 z-999 fl\",\"pos\":\"absolute\",\"z\":\"999\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2659,\"h\":1231,\"x\":64,\"y\":118},\"parent\":\"p-splitterpanel graph-canvas-panel relat\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"ph-no-capture pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":1229,\"h\":603,\"x\":454,\"y\":749},\"parent\":\"graph-canvas-container\"},{\"tag\":\"CANVAS\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0 size-full\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"}],\"siblings\":[{\"tag\":\"DIV\",\"id\":\"comfyui-body-top\",\"cls\":\"comfyui-body-top\",\"gridArea\":\"1 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":16,\"x\":0,\"y\":0}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-bottom\",\"cls\":\"comfyui-body-bottom\",\"gridArea\":\"3 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-left\",\"cls\":\"comfyui-body-left\",\"gridArea\":\"2 / 1\",\"display\":\"flex\",\"rect\":{\"w\":0,\"h\":1341,\"x\":0,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-right\",\"cls\":\"comfyui-body-right\",\"gridArea\":\"2 / 3\",\"display\":\"block\",\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"graph-canvas-container\",\"cls\":\"graph-canvas-container\",\"gridArea\":\"2 / 2\",\"display\":\"block\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16}}]}",
+      "{\"tag\":\"steady\",\"t\":\"2026-10-21T15:44:56.211Z\",\"win\":[2730,1356],\"dpr\":0.9375,\"container\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"bg\":{\"w\":2731,\"h\":1341,\"cssW\":\"(none)\",\"cssH\":\"(none)\"},\"backing\":[2731,1341],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 2730.67px 0px\",\"gridRows\":\"16px 1340.8px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16},\"display\":\"block\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357},\"display\":\"flex\"},\"agentPanel\":false,\"dsVisibleArea\":{\"x\":-1009,\"y\":-1629,\"w\":6068,\"h\":2980},\"ds\":{\"scale\":0.45,\"offset\":[1009,1629],\"vp\":[2731,1341],\"vpCache\":[2731,1341]},\"nodeCount\":28,\"nodeTypes\":[\"VAEDecodeAudio\",\"EmptyYuE2LatentAudio\",\"YuE2GenerateABC\",\"AudioEncoderLoader\",\"CheckpointLoaderSimple\"],\"nodeBox\":{\"x\":483,\"y\":1237,\"w\":2460,\"h\":407},\"mismatch\":{\"nodeSpan\":[2943,1644],\"canvasSpan\":[2731,1357],\"overflowRight\":212,\"overflowBottom\":287},\"overlays\":[{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute top-0 left-0 z-999 fl\",\"pos\":\"absolute\",\"z\":\"999\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2659,\"h\":1231,\"x\":64,\"y\":118},\"parent\":\"p-splitterpanel graph-canvas-panel relat\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"ph-no-capture pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":1229,\"h\":603,\"x\":454,\"y\":749},\"parent\":\"graph-canvas-container\"},{\"tag\":\"CANVAS\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0 size-full\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"}],\"siblings\":[{\"tag\":\"DIV\",\"id\":\"comfyui-body-top\",\"cls\":\"comfyui-body-top\",\"gridArea\":\"1 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":16,\"x\":0,\"y\":0}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-bottom\",\"cls\":\"comfyui-body-bottom\",\"gridArea\":\"3 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-left\",\"cls\":\"comfyui-body-left\",\"gridArea\":\"2 / 1\",\"display\":\"flex\",\"rect\":{\"w\":0,\"h\":1341,\"x\":0,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-right\",\"cls\":\"comfyui-body-right\",\"gridArea\":\"2 / 3\",\"display\":\"block\",\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"graph-canvas-container\",\"cls\":\"graph-canvas-container\",\"gridArea\":\"2 / 2\",\"display\":\"block\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16}}]}",
+      "{\"tag\":\"steady\",\"t\":\"2026-10-21T15:45:56.215Z\",\"win\":[2730,1356],\"dpr\":0.9375,\"container\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"canvasRect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"bg\":{\"w\":2731,\"h\":1341,\"cssW\":\"(none)\",\"cssH\":\"(none)\"},\"backing\":[2731,1341],\"inline\":{\"w\":\"(none)\",\"h\":\"(none)\"},\"gridCols\":\"0px 2730.67px 0px\",\"gridRows\":\"16px 1340.8px 0px\",\"rightPanel\":{\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16},\"display\":\"block\",\"inlineW\":\"(none)\"},\"bottomPanel\":{\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357},\"display\":\"flex\"},\"agentPanel\":false,\"dsVisibleArea\":{\"x\":-1009,\"y\":-1629,\"w\":6068,\"h\":2980},\"ds\":{\"scale\":0.45,\"offset\":[1009,1629],\"vp\":[2731,1341],\"vpCache\":[2731,1341]},\"nodeCount\":28,\"nodeTypes\":[\"VAEDecodeAudio\",\"EmptyYuE2LatentAudio\",\"YuE2GenerateABC\",\"AudioEncoderLoader\",\"CheckpointLoaderSimple\"],\"nodeBox\":{\"x\":483,\"y\":1237,\"w\":2460,\"h\":407},\"mismatch\":{\"nodeSpan\":[2943,1644],\"canvasSpan\":[2731,1357],\"overflowRight\":212,\"overflowBottom\":287},\"overlays\":[{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute top-0 left-0 z-999 fl\",\"pos\":\"absolute\",\"z\":\"999\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2659,\"h\":1231,\"x\":64,\"y\":118},\"parent\":\"p-splitterpanel graph-canvas-panel relat\"},{\"tag\":\"DIV\",\"id\":\"\",\"cls\":\"ph-no-capture pointer-events-none absolute inset-0\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":1229,\"h\":603,\"x\":454,\"y\":749},\"parent\":\"graph-canvas-container\"},{\"tag\":\"CANVAS\",\"id\":\"\",\"cls\":\"pointer-events-none absolute inset-0 size-full\",\"pos\":\"absolute\",\"z\":\"auto\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16},\"parent\":\"graph-canvas-container\"}],\"siblings\":[{\"tag\":\"DIV\",\"id\":\"comfyui-body-top\",\"cls\":\"comfyui-body-top\",\"gridArea\":\"1 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":16,\"x\":0,\"y\":0}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-bottom\",\"cls\":\"comfyui-body-bottom\",\"gridArea\":\"3 / 1 / auto / -1\",\"display\":\"flex\",\"rect\":{\"w\":2731,\"h\":0,\"x\":0,\"y\":1357}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-left\",\"cls\":\"comfyui-body-left\",\"gridArea\":\"2 / 1\",\"display\":\"flex\",\"rect\":{\"w\":0,\"h\":1341,\"x\":0,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"comfyui-body-right\",\"cls\":\"comfyui-body-right\",\"gridArea\":\"2 / 3\",\"display\":\"block\",\"rect\":{\"w\":0,\"h\":1341,\"x\":2731,\"y\":16}},{\"tag\":\"DIV\",\"id\":\"graph-canvas-container\",\"cls\":\"graph-canvas-container\",\"gridArea\":\"2 / 2\",\"display\":\"block\",\"rect\":{\"w\":2731,\"h\":1341,\"x\":0,\"y\":16}}]}"
+    ]
+  }
+}

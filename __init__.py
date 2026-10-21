@@ -1,5 +1,5 @@
 """
-ComfyUI Workflow Models Downloader
+ComfyUI 工作流模型管理
 Scans the active workflow for missing models and provides a UI to download them from HuggingFace.
 
 Features:

@@ -1,5 +1,5 @@
 """
-Server-side API endpoints for Workflow Models Downloader
+Server-side API endpoints for 工作流模型管理
 """
 
 import os
@@ -67,7 +67,7 @@ SETTINGS_FILE = os.path.join(EXTENSION_PATH, 'settings.json')
 # Version info
 PYPROJECT_FILE = os.path.join(EXTENSION_PATH, 'pyproject.toml')
 GITHUB_REPO = "yezhangdeng01/ComfyUI-Workflow-Models-Downloader"
-REGISTRY_URL = "https://registry.comfy.org/nodes/comfyui-workflow-models-downloader"
+REGISTRY_URL = "https://registry.comfy.org/nodes/comfyui-workflow-model-manager"
 
 def get_installed_version():
     """Get installed version from pyproject.toml"""
@@ -3941,7 +3941,7 @@ async def parse_workflow(request):
 
         logging.debug(f"[WMD] Parsing workflow: {workflow_path}")
 
-        # Use the same scan_workflow_for_models function as the main Workflow Models tab
+        # Use the same scan_workflow_for_models function as the main Workflow Model tab
         # This already returns all the data we need including existence check, URLs, and alternatives
         scanned_models = scan_workflow_for_models(workflow_content)
 
@@ -4902,7 +4902,7 @@ def _download_model_thread(download_id, hf_repo, hf_path, filename, target_dir):
             status_code = e.response.status_code
             if status_code in [401, 403]:
                 if 'huggingface.co' in url:
-                    error_msg = f"Unauthorized (HTTP {status_code}): HuggingFace token required. Go to File > Settings > Workflow Models Downloader to configure your HuggingFace token. Get one at https://huggingface.co/settings/tokens"
+                    error_msg = f"Unauthorized (HTTP {status_code}): HuggingFace token required. Go to File > Settings > 工作流模型管理 to configure your HuggingFace token. Get one at https://huggingface.co/settings/tokens"
                 else:
                     error_msg = f"Unauthorized (HTTP {status_code}): Authentication required for this model."
             elif status_code == 404:
@@ -5053,9 +5053,9 @@ def _download_from_url_thread(download_id, url, filename, target_dir):
             status_code = e.response.status_code
             if status_code in [401, 403]:
                 if 'huggingface.co' in url:
-                    error_msg = f"Unauthorized (HTTP {status_code}): HuggingFace token required. Go to File > Settings > Workflow Models Downloader to configure your HuggingFace token. Get one at https://huggingface.co/settings/tokens"
+                    error_msg = f"Unauthorized (HTTP {status_code}): HuggingFace token required. Go to File > Settings > 工作流模型管理 to configure your HuggingFace token. Get one at https://huggingface.co/settings/tokens"
                 elif 'civitai.com' in url:
-                    error_msg = f"Unauthorized (HTTP {status_code}): CivitAI API key required. Go to File > Settings > Workflow Models Downloader to configure your CivitAI API key."
+                    error_msg = f"Unauthorized (HTTP {status_code}): CivitAI API key required. Go to File > Settings > 工作流模型管理 to configure your CivitAI API key."
                 else:
                     error_msg = f"Unauthorized (HTTP {status_code}): Authentication required for this model."
             elif status_code == 404:
@@ -6779,7 +6779,7 @@ def _resume_download_core(url, dest_path, download_id, headers=None, max_retries
 
             if response.status_code in (401, 403):
                 # Auth problems are not retryable
-                return False, f"Unauthorized (HTTP {response.status_code}): this model needs a HuggingFace token with access to the repo (gated model). Configure it in Settings > Workflow Models Downloader."
+                return False, f"Unauthorized (HTTP {response.status_code}): this model needs a HuggingFace token with access to the repo (gated model). Configure it in Settings > 工作流模型管理."
             if response.status_code == 404:
                 return False, "Model not found (HTTP 404): The file may have been moved or deleted."
             response.raise_for_status()

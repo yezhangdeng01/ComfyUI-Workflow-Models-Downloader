@@ -2,7 +2,7 @@ import { api } from "../../scripts/api.js";
 import { app } from "../../scripts/app.js";
 import { $el } from "../../scripts/ui.js";
 
-const VERSION = "1.8.1";
+const VERSION = "1.9.1";
 
 // Common model directories in ComfyUI
 const MODEL_DIRECTORIES = [
@@ -2188,7 +2188,7 @@ class WorkflowModelsDownloader {
             $el("div.wmd-modal", [
                 // Header with title and close button
                 $el("div.wmd-modal-header", [
-                    $el("h2.wmd-modal-title", ["工作流模型"]),
+                    $el("h2.wmd-modal-title", ["工作流模型管理"]),
                     $el("button.wmd-modal-close", {
                         onclick: () => this.close()
                     }, ["\u00D7"])
@@ -4878,7 +4878,7 @@ class WorkflowModelsDownloader {
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span style="font-size: 24px;">📦</span>
                     <div>
-                        <div style="font-weight: bold; font-size: 16px; color: #e94560;">模型下载</div>
+                        <div style="font-weight: bold; font-size: 16px; color: #e94560;">工作流模型管理</div>
                         <div style="color: #888; font-size: 12px; margin-top: 4px;">
                             版本：<span style="color: #4CAF50; font-weight: bold;">${versionInfo.installed || 'unknown'}</span>
                             ${latestInfo}
@@ -4909,7 +4909,7 @@ class WorkflowModelsDownloader {
                         <li>打开 <a href="https://huggingface.co/settings/tokens" target="_blank" class="wmd-help-link">huggingface.co/settings/tokens</a></li>
                         <li>点击 "New token"（新建令牌）</li>
                         <li>起个名字（如 "ComfyUI"），权限选 "Read"（只读）</li>
-                        <li>复制令牌，粘贴到 <strong>ComfyUI 菜单 > 设置 > 模型下载</strong></li>
+                        <li>复制令牌，粘贴到 <strong>ComfyUI 菜单 > 设置 > 工作流模型管理</strong></li>
                     </ol>
                     <div class="wmd-help-note">
                         <strong>注意：</strong>下载 Flux、SD3 等门控模型需要 HuggingFace 令牌，
@@ -4927,7 +4927,7 @@ class WorkflowModelsDownloader {
                         <li>打开 <a href="https://civitai.com/user/account" target="_blank" class="wmd-help-link">civitai.com/user/account</a></li>
                         <li>滚动到 "API Keys"（API 密钥）区域</li>
                         <li>点击 "Add API Key" 并起个名字</li>
-                        <li>复制密钥，粘贴到 <strong>ComfyUI 菜单 > 设置 > 模型下载</strong></li>
+                        <li>复制密钥，粘贴到 <strong>ComfyUI 菜单 > 设置 > 工作流模型管理</strong></li>
                     </ol>
                     <div class="wmd-help-note">
                         <strong>注意：</strong>从 CivitAI 下载模型需要 API 密钥，
@@ -4990,7 +4990,7 @@ class WorkflowModelsDownloader {
                         <li>打开 <a href="https://tavily.com" target="_blank" class="wmd-help-link">tavily.com</a></li>
                         <li>注册免费账号</li>
                         <li>进入控制台复制 API 密钥</li>
-                        <li>粘贴到 <strong>ComfyUI 设置 > 模型下载 > Tavily API 密钥</strong></li>
+                        <li>粘贴到 <strong>ComfyUI 设置 > 工作流模型管理 > Tavily API 密钥</strong></li>
                     </ol>
                     <div class="wmd-help-note">
                         <strong>注意：</strong>Tavily 每月提供 1000 次免费搜索。搜索结果会缓存在本地，
@@ -5857,7 +5857,7 @@ app.registerExtension({
         // Register settings in ComfyUI Settings panel
         app.ui.settings.addSetting({
             id: "WorkflowModelsDownloader.HuggingFaceToken",
-            category: ["模型下载", "API 密钥", "HuggingFace"],
+            category: ["工作流模型管理", "API 密钥", "HuggingFace"],
             name: "HuggingFace 令牌",
             tooltip: "下载门控模型（Flux、SD3 等）所需的 HuggingFace 访问令牌，可在 huggingface.co/settings/tokens 获取",
             type: "text",
@@ -5879,7 +5879,7 @@ app.registerExtension({
 
         app.ui.settings.addSetting({
             id: "WorkflowModelsDownloader.CivitAIApiKey",
-            category: ["模型下载", "API 密钥", "CivitAI"],
+            category: ["工作流模型管理", "API 密钥", "CivitAI"],
             name: "CivitAI API 密钥",
             tooltip: "下载模型所需的 CivitAI API 密钥，可在 civitai.com/user/account 获取",
             type: "text",
@@ -5901,7 +5901,7 @@ app.registerExtension({
 
         app.ui.settings.addSetting({
             id: "WorkflowModelsDownloader.TavilyApiKey",
-            category: ["模型下载", "API 密钥", "Tavily"],
+            category: ["工作流模型管理", "API 密钥", "Tavily"],
             name: "Tavily API 密钥",
             tooltip: "高级搜索功能所需的 Tavily API 密钥，可在 tavily.com 获取",
             type: "text",
@@ -5923,7 +5923,7 @@ app.registerExtension({
 
         app.ui.settings.addSetting({
             id: "WorkflowModelsDownloader.EnableAdvancedSearch",
-            category: ["模型下载", "功能"],
+            category: ["工作流模型管理", "功能"],
             name: "启用高级搜索",
             tooltip: "启用后用 Tavily AI 搜索代替基础链接搜索，需要 Tavily API 密钥。",
             type: "boolean",
@@ -5943,7 +5943,7 @@ app.registerExtension({
 
         app.ui.settings.addSetting({
             id: "WorkflowModelsDownloader.MaxParallelDownloads",
-            category: ["模型下载", "下载"],
+            category: ["工作流模型管理", "下载"],
             name: "最大并行下载数",
             tooltip: "同时下载的最大任务数（1-10）。调大可加快批量下载，但更占带宽。",
             type: "slider",
@@ -5968,7 +5968,7 @@ app.registerExtension({
 
         app.ui.settings.addSetting({
             id: "WorkflowModelsDownloader.UseHFMirror",
-            category: ["模型下载", "下载"],
+            category: ["工作流模型管理", "下载"],
             name: "使用 HuggingFace 镜像",
             tooltip: "将 HuggingFace 的下载与 API 搜索全部走镜像（默认 hf-mirror.com）。大陆网络直连 huggingface.co 不稳定时推荐开启。不影响 CivitAI 链接。",
             type: "boolean",
@@ -5988,7 +5988,7 @@ app.registerExtension({
 
         app.ui.settings.addSetting({
             id: "WorkflowModelsDownloader.HFMirrorDomain",
-            category: ["模型下载", "下载"],
+            category: ["工作流模型管理", "下载"],
             name: "HuggingFace 镜像域名",
             tooltip: "开启「使用 HuggingFace 镜像」时采用的镜像域名（如 hf-mirror.com），只填域名不带 https:// 前缀。",
             type: "text",
@@ -6015,8 +6015,8 @@ app.registerExtension({
             const wmdButton = new ComfyButton({
                 icon: "download",
                 action: showMissingModelsDialog,
-                tooltip: "扫描工作流所需模型并下载",
-                content: "模型下载",
+                tooltip: "管理工作流所需模型：自动解析来源并下载",
+                content: "工作流模型管理",
                 classList: "comfyui-button comfyui-menu-mobile-collapse"
             });
 
@@ -6038,7 +6038,7 @@ app.registerExtension({
             menu.append(separator);
 
             const button = document.createElement("button");
-            button.textContent = "模型下载";
+            button.textContent = "工作流模型管理";
             button.onclick = showMissingModelsDialog;
             menu.append(button);
 

@@ -1,7 +1,7 @@
 [project]
-name = "comfyui-workflow-models-downloader"
-description = "Scan workflows for required models and download them automatically from HuggingFace, CivitAI, and other sources. Features include filter dropdowns, Tavily AI-powered advanced search, metadata caching, and automatic URL restoration."
-version = "1.9.0"
+name = "comfyui-workflow-model-manager"
+description = "工作流模型管理 - 扫描工作流中引用的模型，自动从 HuggingFace、CivitAI 等来源解析并下载缺失模型，支持目录自动识别、来源校验与断点续传。"
+version = "1.9.1"
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.9"
@@ -18,8 +18,6 @@ Documentation = "https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downlo
 "Bug Tracker" = "https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader/issues"
 
 [tool.comfy]
-# NOTE: PublisherId 属于原发布者 slahiri 的 comfy.org 账号，无法在此更改。
-# 本 fork 的实际代码与发布地址为 https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader
-PublisherId = "slahiri"
-DisplayName = "Workflow Models Downloader"
+PublisherId = "yezhangdeng"
+DisplayName = "工作流模型管理"
 Icon = "https://raw.githubusercontent.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader/main/images/workflow-models-tab.png"

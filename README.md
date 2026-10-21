@@ -1,4 +1,6 @@
-# ComfyUI Workflow Models Downloader
+# ComfyUI 工作流模型管理
+
+> 英文名：ComfyUI Workflow Model Manager（CNR node id: `comfyui-workflow-model-manager`）
 
 [![ComfyUI Registry](https://img.shields.io/badge/ComfyUI-Registry-green)](https://registry.comfy.org/publishers/slahiri/nodes/comfyui-workflow-models-downloader)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -19,7 +21,13 @@ What this fork changes:
 - **Verified source resolution** - the best-verified link is picked automatically and shown with its evidence
 - **High-DPI canvas fix** - repairs the node/grid misalignment that appears when the browser's effective devicePixelRatio is greater than 1
 
-The ComfyUI Registry listing still points at the original publisher (`slahiri`), so installing from the Registry gives the upstream `1.8.1`. **Install from this repository** to get the fixes:
+This fork is published on the ComfyUI Registry under its own node id and publisher:
+
+- Node id: `comfyui-workflow-model-manager`
+- Publisher: [`@yezhangdeng`](https://registry.comfy.org/publishers/yezhangdeng)
+- Display name: 工作流模型管理
+
+The upstream listing (`slahiri` / `comfyui-workflow-models-downloader`) remains untouched and keeps serving `1.8.1`. **Install this fork** to get the fixes:
 
 ```bash
 cd ComfyUI/custom_nodes
