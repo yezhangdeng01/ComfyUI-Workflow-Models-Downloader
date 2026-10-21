@@ -1,33 +1,96 @@
 # ComfyUI 工作流模型管理
 
-> 英文名：ComfyUI Workflow Model Manager（CNR node id: `comfyui-workflow-model-manager`）
+> 英文名：ComfyUI Workflow Model Manager
+> ComfyUI Registry node id：`comfyui-workflow-model-manager`
 
-[![ComfyUI Registry](https://img.shields.io/badge/ComfyUI-Registry-green)](https://registry.comfy.org/publishers/slahiri/nodes/comfyui-workflow-models-downloader)
+[![ComfyUI Registry](https://img.shields.io/badge/ComfyUI-Registry-green)](https://registry.comfy.org/publishers/yezhangdeng/nodes/comfyui-workflow-model-manager)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![GitHub stars](https://img.shields.io/github/stars/yezhangdeng01/ComfyUI-Workflow-Models-Downloader.svg)](https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader/stargazers)
 
-A powerful ComfyUI extension that automatically detects models in your workflow and helps download missing ones from HuggingFace, CivitAI, and other sources.
+自动扫描工作流里引用的模型，从 HuggingFace、CivitAI 等来源解析出可用下载地址，并把缺失的模型下载到 ComfyUI 真正会去读的目录里。
 
-## About this fork
+**界面为中文，定位是上游节点的中文优化版。**
 
-This repository is a **fork of [slahiri/ComfyUI-Workflow-Models-Downloader](https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader)** (MIT licensed), maintained at
-**https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader**.
+---
 
-What this fork changes:
+## 这是什么：上游版本的两个致命问题
 
-- **Faster workflow scanning** - scanning is fully local, so the model table appears instantly
-- **Reliable downloads** - interrupted downloads resume from the exact byte, and the target folder is the one the loading node actually reads from
-- **Verified source resolution** - the best-verified link is picked automatically and shown with its evidence
-- **High-DPI canvas fix** - repairs the node/grid misalignment that appears when the browser's effective devicePixelRatio is greater than 1
+本项目 fork 自 [slahiri/ComfyUI-Workflow-Models-Downloader](https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader)（MIT 协议，原作者 Siddhartha Lahiri）。
 
-This fork is published on the ComfyUI Registry under its own node id and publisher:
+上游 1.8.1 有两个在真实使用中几乎让人放弃的问题：
 
-- Node id: `comfyui-workflow-model-manager`
-- Publisher: [`@yezhangdeng`](https://registry.comfy.org/publishers/yezhangdeng)
-- Display name: 工作流模型管理
+### 1. 扫不出模型 —— 搜不到来源
 
-The upstream listing (`slahiri` / `comfyui-workflow-models-downloader`) remains untouched and keeps serving `1.8.1`. **Install this fork** to get the fixes:
+工作流里明明写着 `moss\qwen3.5_9b_int8_convrot.safetensors`，插件却报告"未找到来源"。原因：
+
+- 带**子目录前缀**的工作流引用（`moss\xxx.safetensors`）查表时匹配不上
+- 同一个模型在表格里**出现两行**，其中一行是"幽灵行"，目标目录还判错成 `checkpoints`
+- 缺失模型的来源解析**完全依赖用户手动点"搜索"**，插件自己不会去后台找
+
+结果就是：扫出来一堆"缺链接 / 未知"，用户只能一个一个手动搜。对新手来说基本等于不可用。
+
+### 2. 下载不能续传 —— 大文件从头再来
+
+下载一断，缓冲区被丢弃，**从 0 开始重下**。9GB 的模型断一次就是 9GB 的流量和耐心。加上进度循环里还有一个 `NameError`（`progress_window` 未定义），会让**每一次下载都异常中断并陷入无限重试**。
+
+对一个主要用途就是下大模型的插件来说，这两点是致命的。
+
+---
+
+## 我们做了什么改进
+
+### 搜索：自动找源，且能找到
+
+| 改进 | 说明 |
+|---|---|
+| **后台自动解析来源** | 扫出缺失模型后自动在后台并发查询 HuggingFace 候选，**不需要用户手动点搜索** |
+| **带目录前缀的引用能查表** | `moss\xxx.safetensors` 这类引用现在能正确匹配到模型 |
+| **消除幽灵行** | 同一模型不再显示两行，之前那条目录判错的"重复行"已移除 |
+| **来源依据可见** | 每个模型标注 `✓ 已校验`（客观校验通过）或 `≈ 最佳猜测`（只是最佳候选），并展示判定依据：远端文件大小匹配、目标目录匹配、官方发布者命名空间 |
+| **解析结果持久化** | 选定的来源跨重启保留，重新扫描不再显示"无链接" |
+| **可手动覆盖** | 任何模型都可以用自己的 URL 覆盖自动选择 |
+| **扫描纯本地** | 扫描不再联网，模型表格**几乎瞬间出现**（上游冷启动要等约 10 秒） |
+
+实测：扫描 10.01s → **0.071s**（热缓存 0.008s）；单模型找源 3.14s → 候选全量 3.12s。
+
+### 续传：真的能续
+
+| 改进 | 说明 |
+|---|---|
+| **断点续传保留每个字节** | 下载中断不再丢弃缓冲，从断点继续，而不是从头再来 |
+| **修掉中断下载的 NameError** | 删除了导致每次下载异常中断、陷入无限重试的 `progress_window` 未定义错误 |
+| **按 safetensors header 校验大小** | 期望大小从文件头读取，半下载状态也能正确比对，不会因为"当前大小"误判 |
+| **正确的目标目录** | 模型被保存到**加载节点实际读取的 ComfyUI 目录**（如 `diffusion_models/`、`text_encoders/`），不是拍脑袋猜的分类 |
+
+实测：9.75GB 的 qwen 模型从 61% 平滑续传到 100%，最终字节数与 safetensors header 推导值完全一致。
+
+### 高分屏画布错位修复
+
+Windows 显示缩放 125% + 浏览器缩放 90%/100% 时，ComfyUI 画布会出现**节点与背景网格错位、画布缩在一角**。
+
+根因不在前端，而在 `comfyui-mixlab-nodes`：它覆盖了 `LGraphCanvas.drawBackCanvas`，用"在压缩后的源码里检索 `window.devicePixelRatio` 字面量"这种脆弱方式探测设备像素比。新版前端压缩后该字面量已不存在，于是背景网格被**永久锁定为 1 倍绘制**，而节点按真实 DPR 渲染。
+
+插件内置的 web 扩展会修正背景画布的缩放倍率，使其与前景一致，并跟随浏览器缩放实时变化——**不需要改 MixLab，也不需要改前端包**。删除 `js/wmd_dpr_fix.js` 即可完全回滚。
+
+### 其他
+
+- **中文界面**：全部界面、提示、帮助文档均为中文
+- **注册表合规**：移除了运行时 `pip install`（Registry 安全政策禁止），依赖由 ComfyUI-Manager 统一安装
+- **镜像支持**：可配置 HuggingFace 镜像域名，大陆网络直连不稳定时推荐开启
+
+---
+
+## 安装
+
+### 方式一：ComfyUI-Manager（推荐）
+
+在 ComfyUI-Manager 中搜索 **"Workflow Models Downloader"** 或 **"工作流模型管理"** 并安装。
+
+> 本节点在 Registry 上的发布者为 [`@yezhangdeng`](https://registry.comfy.org/publishers/yezhangdeng)，node id 为 `comfyui-workflow-model-manager`。
+> 上游原版（`slahiri` / `comfyui-workflow-models-downloader`）仍独立存在，继续服务 `1.8.1`。
+
+### 方式二：手动安装
 
 ```bash
 cd ComfyUI/custom_nodes
@@ -35,162 +98,95 @@ git clone https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader.gi
 pip install -r ComfyUI-Workflow-Models-Downloader/requirements.txt
 ```
 
-Upstream contributions remain welcome; see `CHANGELOG.md` for the full list of changes.
+安装后重启 ComfyUI。
 
-## Screenshots
+---
 
-### Menu Button
-Click the **"Workflow Models"** button in the ComfyUI menu bar to open the manager.
+## 使用
 
-![Menu Button](images/menu-button.png)
+1. 在 ComfyUI 中打开任意工作流
+2. 点击顶部菜单的 **「工作流模型管理」** 按钮
+3. 查看自动扫描出的模型清单与状态（已存在 / 缺失 / 可下载）
+4. 对缺失模型点击 **下载**，或用 **下载全部缺失** 批量处理
 
-### Workflow Models Tab
-Scans your active workflow and displays all required models with their status, source, and download options. Features include filter dropdown, Auto-Resolve for bulk downloads, and one-click downloading.
+### 找不到来源的模型
 
-![Workflow Models Tab](images/workflow-models-tab.png)
+- 插件会**自动在后台解析来源**，稍等片刻即可看到结果
+- 标注 `≈ 最佳猜测` 的表示尚未通过客观校验，可点 **模糊匹配** 找相似模型，或 **高级搜索**（Tavily）扩大范围
+- 仍然拿不到时，在 **工作流** 页签可直接粘贴来源链接覆盖
 
-### Downloads Tab
-Manage all your downloads in one place. Features Direct URL Download - paste any model URL, auto-detect type and target folder, then download with one click.
+### 直链下载
 
-![Downloads Tab](images/downloads-tab.png)
+1. 进入 **下载** 页签
+2. 粘贴模型 URL（HuggingFace、CivitAI 或直链）
+3. 点 **检查链接** 自动识别文件名与类型
+4. 按需调整文件名 / 目录
+5. 点 **下载**
 
-### Workflows Tab
-Browse saved workflow files and manage model sources:
-- **3-column layout** - Workflows list, models in workflow, model details
-- **Automatic source resolution** - Missing models are resolved in the background; the best-verified download link is picked and shown with its evidence
-- **Manual source entry** - Override the automatic choice with your own URL for any model
-- **Advanced Search** - AI-powered search using Tavily to find model sources
-- **Search caching** - Results persist across restarts
+---
 
-![Workflows Tab](images/workflows-tab.png)
+## 界面说明
 
-### Advanced Search (Tavily)
-When a model source is unknown, use Advanced Search to find possible download sources from HuggingFace, CivitAI, and other sites.
+| 页签 | 用途 |
+|---|---|
+| **工作流模型** | 扫描当前工作流所需模型，显示状态、来源与依据 |
+| **下载** | 直链下载、进行中的任务、历史记录 |
+| **本地模型** | 按目录浏览已安装模型，查看路径、修改时间、删除 |
+| **工作流** | 三栏布局：工作流列表 → 该工作流的模型 → 模型详情与来源管理 |
+| **帮助** | 内置 FAQ 与排障说明 |
 
-![Advanced Search](images/workflows-search.png)
+---
 
-### Local Browser Tab
-Browse all your installed models organized by folder. Features include:
-- **Folder tree sidebar** with model counts per category
-- **Unused models filter** - identify models not used in any workflow
-- **Usage Tracking** - scan all workflows to build usage history
-- **Search, sort, and manage** with copy path, view details, and delete options
+## 支持的模型类型
 
-![Local Browser Tab](images/local-browser-tab.png)
-
-### Settings (ComfyUI Menu)
-Configure API keys for HuggingFace, CivitAI, and Tavily (AI-powered search) in ComfyUI's Settings menu under "Workflow Models Downloader".
-
-![Settings](images/file-settings.png)
-
-### Help Tab
-Built-in FAQ and troubleshooting guide covering API key setup, common errors, and tips.
-
-![Help Tab](images/help-tab.png)
-
-## Features
-
-### Core Features
-- **Auto-detect models** - Scans your active workflow for all model references
-- **Smart URL detection** - Finds download URLs from multiple sources:
-  - Workflow metadata (embedded URLs)
-  - Popular models registry (curated list)
-  - ComfyUI Manager model list
-  - HuggingFace API search
-  - CivitAI API search
-- **One-click download** - Download missing models directly from the UI
-- **Background downloads** - Downloads continue even when modal is closed
-- **Progress tracking** - Real-time download progress with notifications
-
-### v1.9.0 New Features
-- **Automatic source resolution** - Missing models are resolved in the background; the plugin picks the best-verified link and shows the evidence (size match, target-folder match, official publisher)
-- **Verified vs best-guess badge** - Each model shows whether its source is confirmed by objective checks or only a best guess
-- **Instant workflow scan** - Scanning no longer touches the network, so the model table appears immediately instead of blocking for ~10s
-- **Resumable downloads that actually resume** - Interrupted downloads keep every byte received and continue from the break point
-- **Correct target folder detection** - Models are matched and saved in the ComfyUI folder the loading node actually reads from
-
-### v1.8.0 New Features
-- **Tabbed UI** - Clean organization with 5 tabs: Workflow Models, Downloads, Local Browser, Settings, Help
-- **Direct URL Download** - Paste any URL, auto-detect model type, choose directory, and download
-- **Local Browser** - Browse all installed models with folder tree sidebar, search, and sort
-- **Unused Models Tracking** - Identify models not used in any workflow with persistent cache
-- **Scan All Workflows** - Batch scan workflow files to build usage history
-- **Alternative Formats** - Auto-detect GGUF/fp16/quantized variants when model is missing
-- **Dynamic Folder Types** - Supports custom folders from extra_model_paths.yaml
-- **Fuzzy Matching** - Find similar models with 70% confidence threshold
-- **Model Aliases** - Pattern-based matching for fp16/fp8/quantized variants
-- **aria2 Integration** - 4x faster downloads with automatic resume support
-- **Download Queue** - Parallel downloads with configurable limit (0-50)
-- **Confidence Badges** - Visual indicator showing match quality percentage
-
-## Installation
-
-### Via ComfyUI Registry
-Search for "Workflow Models Downloader" in ComfyUI Manager and click Install.
-
-> **Note:** the Registry listing is published by the original author (`slahiri`) and serves version `1.8.1`.
-> To get this fork's fixes, use the manual installation below.
-
-### Manual Installation
-```bash
-cd ComfyUI/custom_nodes
-git clone https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader.git
-pip install -r ComfyUI-Workflow-Models-Downloader/requirements.txt
-```
-
-Restart ComfyUI after installation.
-
-## Usage
-
-1. Open any workflow in ComfyUI
-2. Click **"Workflow Models"** button in the top menu
-3. Review detected models and their status
-4. Click **Download** for missing models, or **Download All Missing**
-
-### For models without detected URLs:
-- Click **Fuzzy Match** to find similar models
-- Click **Search URL** to search HuggingFace and CivitAI APIs
-- Or paste a direct download URL and click **Go**
-
-### Direct URL Download:
-1. Go to **Downloads** tab
-2. Paste any model URL (HuggingFace, CivitAI, or direct link)
-3. Click **Check URL** to auto-detect filename and type
-4. Adjust filename/directory if needed
-5. Click **Download**
-
-## Supported Model Types
-
-- Checkpoints (SD1.5, SDXL, SD3, Flux)
-- Diffusion Models (Wan, LTX, HunyuanVideo)
+- Checkpoints（SD1.5 / SDXL / SD3 / Flux）
+- Diffusion Models（Wan / LTX / HunyuanVideo / MOSS 等）
 - VAE
 - LoRA / LoHa / LoKr
-- Text Encoders (T5, CLIP)
+- Text Encoders（T5 / CLIP / Qwen 等）
 - CLIP Vision
 - ControlNet
 - IP-Adapter
-- Upscalers (ESRGAN, etc.)
+- Upscalers（ESRGAN 等）
 - SAM / SAM2
-- And more...
+- 以及更多……
 
-## Requirements
+---
+
+## 环境要求
 
 - ComfyUI
 - Python 3.10+
 - `requests`
 - `huggingface_hub`
 
-### Optional (for faster downloads)
-- [aria2](https://aria2.github.io/) - 4x faster downloads with automatic resume support
+### 可选（用于加速下载）
 
-## API Keys
+- [aria2](https://aria2.github.io/) —— 约 4 倍速下载，支持自动续传
 
-For full functionality, configure these API keys in the Settings tab:
+---
 
-- **HuggingFace Token** - Required for gated models (Flux, SD3, etc.) - [Get token](https://huggingface.co/settings/tokens)
-- **CivitAI API Key** - Required for CivitAI downloads - [Get key](https://civitai.com/user/account)
-- **Tavily API Key** - Optional, enables AI-powered advanced search - [Get key](https://tavily.com)
+## API 密钥
 
-## License
+在 **设置** 页签（ComfyUI 菜单 → 设置 → 工作流模型管理）中配置：
+
+| 密钥 | 用途 | 获取地址 |
+|---|---|---|
+| **HuggingFace 令牌** | 下载门控模型（Flux、SD3 等）**必需** | [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) |
+| **CivitAI API 密钥** | 下载 CivitAI 模型**必需** | [civitai.com/user/account](https://civitai.com/user/account) |
+| **Tavily API 密钥** | 可选，开启 AI 高级搜索 | [tavily.com](https://tavily.com) |
+
+---
+
+## 后续维护
+
+这是一个**持续维护的中文优化分支**。使用中遇到问题会继续修复更新。
+
+完整改动记录见 [`CHANGELOG.md`](CHANGELOG.md) / [`CHANGELOG.zh.md`](CHANGELOG.zh.md)。
+
+## 致谢与许可
+
+- 上游作者：[slahiri/ComfyUI-Workflow-Models-Downloader](https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader) —— MIT 协议，原版权声明保留
+- 本分支改进与维护：[yezhangdeng01](https://github.com/yezhangdeng01)
 
 MIT License

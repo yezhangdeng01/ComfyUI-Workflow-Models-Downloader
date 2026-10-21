@@ -4,8 +4,18 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+### Improvements
+- README rewritten in Chinese - documents the two fatal problems of the upstream release (models that could not be found, downloads that could not resume), lists every improvement of this fork with measured numbers, and states the ongoing-maintenance commitment
+- Positioning is now explicit: a Chinese-optimized fork of the upstream node. UI, prompts and help docs are all in Chinese
+
 ### Fixes
 - Fixed node/grid misalignment on high-DPI displays - `comfyui-mixlab-nodes` overrides `LGraphCanvas.drawBackCanvas` and detects the device pixel ratio by grepping the minified frontend source for `window.devicePixelRatio`; that literal no longer exists, so the background grid was permanently drawn at scale 1 while nodes rendered at the real DPR. A bundled web extension now keeps both canvases on the same ratio and follows live browser-zoom changes
+
+### Compliance
+- Removed runtime `pip install` - the Comfy Registry forbids installing packages via subprocess during node startup; missing dependencies are now only reported, with the install command shown
+- `requires-python` corrected from `>=3.9` to `>=3.10` (the code uses 3.10+ syntax)
+- Removed the leftover upstream `.circleci/config.yml` (an unused say-hello template)
+- The publish workflow is now manual-dispatch only; pushing no longer publishes automatically
 
 ## 1.9.0 - 2026-10-21
 

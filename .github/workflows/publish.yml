@@ -1,12 +1,13 @@
 name: Publish to Comfy Registry
 
 on:
+  # Manual dispatch only. Publishing must never happen automatically on push.
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "pyproject.toml"
+    inputs:
+      version:
+        description: "Version to publish (must match pyproject.toml)"
+        required: true
+        type: string
 
 jobs:
   publish-node:
