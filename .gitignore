@@ -26,6 +26,13 @@ search_cache.json        # DEPRECATED - merged into model_metadata.json
 user_model_urls.json     # DEPRECATED - merged into model_metadata.json
 usage_cache.json         # DEPRECATED - feature removed
 
+# HF candidate lookup cache (regenerated on demand, machine-local)
+hf_candidate_cache.json
+
+# Local safety backups
+_backup_*/
+_backup_*/
+
 node.zip
 
 # Log files

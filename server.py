@@ -4,7 +4,9 @@ Server-side API endpoints for Workflow Models Downloader
 
 import os
 import re
+import sys
 import glob
+import struct
 import json
 import logging
 import asyncio
@@ -14,6 +16,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from aiohttp import web
 from logging.handlers import RotatingFileHandler
@@ -63,7 +66,7 @@ SETTINGS_FILE = os.path.join(EXTENSION_PATH, 'settings.json')
 
 # Version info
 PYPROJECT_FILE = os.path.join(EXTENSION_PATH, 'pyproject.toml')
-GITHUB_REPO = "slahiri/ComfyUI-Workflow-Models-Downloader"
+GITHUB_REPO = "yezhangdeng01/ComfyUI-Workflow-Models-Downloader"
 REGISTRY_URL = "https://registry.comfy.org/nodes/comfyui-workflow-models-downloader"
 
 def get_installed_version():
@@ -165,7 +168,9 @@ def load_settings():
         'civitai_api_key': '',
         'tavily_api_key': '',
         'enable_advanced_search': False,
-        'max_parallel_downloads': 3
+        'max_parallel_downloads': 3,
+        'use_hf_mirror': False,
+        'hf_mirror_domain': 'hf-mirror.com'
     }
 
     # First try extension's own settings file
@@ -214,6 +219,65 @@ def save_settings(settings):
     except Exception as e:
         logging.error(f"[Workflow-Models-Downloader] Error saving settings: {e}")
         return False
+
+
+# ============================================================================
+# HuggingFace Mirror Rewriting
+# ============================================================================
+
+def _normalize_endpoint(value):
+    """Normalize a mirror value to 'https://domain' with no trailing slash.
+    Accepts a bare domain, an https:// endpoint, or an http:// one."""
+    if not value:
+        return ''
+    v = str(value).strip()
+    if not v:
+        return ''
+    v = v.rstrip('/').strip()
+    if v.startswith(('http://', 'https://')):
+        return v
+    return 'https://' + v
+
+
+def _hf_mirror_endpoint_from_env():
+    """Read the HF mirror endpoint from the environment.
+
+    Supported launchers (秋叶绘世 / aki ComfyUI launcher, etc.) start ComfyUI
+    with HF_ENDPOINT injected when the user enables 'mirror_huggingface'.
+    ComfyUI-Manager reads this; this plugin did not, so model downloads still
+    hit huggingface.co directly no matter what the launcher said."""
+    for var in ('HF_ENDPOINT', 'HF_MIRROR', 'HF_HUB_ENDPOINT'):
+        val = os.environ.get(var, '')
+        if val and val.strip():
+            return _normalize_endpoint(val)
+    return ''
+
+
+def apply_hf_mirror(url):
+    """Rewrite huggingface.co download/API URLs to the configured mirror.
+
+    Priority:
+      1. Plugin setting use_hf_mirror=true (with hf_mirror_domain)
+      2. HF_ENDPOINT environment variable (set by 秋叶绘世 / aki launcher)
+      3. otherwise the URL is returned untouched.
+    Returns the original URL when no mirror is configured."""
+    try:
+        if url is None:
+            return url
+        settings = load_settings()
+        if settings.get('use_hf_mirror', False):
+            mirror = _normalize_endpoint(settings.get('hf_mirror_domain') or 'hf-mirror.com')
+        else:
+            mirror = _hf_mirror_endpoint_from_env()
+        if not mirror:
+            return url
+        if 'https://huggingface.co/' in url:
+            return url.replace('https://huggingface.co/', mirror + '/', 1)
+        if 'https://hf.co/' in url:
+            return url.replace('https://hf.co/', mirror + '/', 1)
+        return url
+    except Exception:
+        return url
 
 
 def load_download_history():
@@ -302,13 +366,29 @@ def add_to_download_history(download_info):
         'directory': download_info.get('directory', '')
     }
 
-    # If download completed successfully, invalidate folder cache so the file is discoverable
-    if entry['status'] == 'completed' and entry['directory']:
-        # Extract folder type from directory path (e.g., "checkpoints" from "models/checkpoints")
-        folder_type = os.path.basename(entry['directory'].rstrip('/\\'))
-        if folder_type:
+    # If download completed successfully, invalidate folder cache so the file is discoverable.
+    # The recorded directory is a best guess and can disagree with where the file
+    # actually landed (curated table override, subfolder in the filename), so
+    # clear every candidate folder type — this is a dict delete, it is cheap.
+    if entry['status'] == 'completed':
+        to_clear = set()
+        if entry['directory']:
+            to_clear.add(os.path.basename(entry['directory'].rstrip('/\\')))
+        hit = _find_file_by_basename(entry.get('filename') or '') if entry.get('filename') else None
+        if hit:
+            try:
+                for name, e in folder_paths.folder_names_and_paths.items():
+                    for d in e[0]:
+                        if os.path.dirname(hit).lower().startswith(os.path.abspath(d).lower()):
+                            to_clear.add(name)
+            except Exception:
+                pass
+        for folder_type in to_clear:
+            if not folder_type:
+                continue
             invalidate_folder_cache(folder_type)
-            logging.info(f"[WMD] Download complete, cache invalidated for: {folder_type}")
+        if to_clear:
+            logging.info(f"[WMD] Download complete, cache invalidated for: {sorted(x for x in to_clear if x)}")
 
     # Remove any existing entry with same filename to avoid duplicates
     download_history = [h for h in download_history if h.get('filename') != entry['filename']]
@@ -409,11 +489,29 @@ def is_advanced_search_enabled():
 
 
 def get_cached_metadata(filename):
-    """Get cached metadata for a filename from model_metadata.json"""
+    """Get cached metadata for a filename from model_metadata.json.
+
+    Curated KNOWN_GOOD_SOURCES overrides any cached (possibly poisoned) URL,
+    and the fix is persisted back to model_metadata.json.
+    """
     # Import here to avoid circular dependency (load_model_metadata defined later)
     metadata = _get_model_metadata_safe()
     basename = os.path.basename(filename)
-    return metadata.get(filename) or metadata.get(basename)
+    entry = metadata.get(filename) or metadata.get(basename)
+
+    kg = lookup_known_good_source(filename)
+    if kg and (not entry or entry.get('url') != kg['url']):
+        entry = dict(entry or {})
+        entry['filename'] = basename
+        entry['url'] = kg['url']
+        entry['source'] = 'known_good'
+        entry['hf_repo'] = kg.get('hf_repo', '')
+        entry['hf_path'] = kg.get('hf_path', '')
+        all_metadata = _get_model_metadata_safe()
+        all_metadata[basename] = entry
+        _save_model_metadata_safe(all_metadata)
+
+    return entry
 
 
 def save_search_metadata(filename, metadata):
@@ -657,13 +755,20 @@ def load_popular_models():
 
 
 def lookup_url_in_popular_models(filename):
-    """Look up URL from curated popular models registry"""
+    """Look up URL from curated popular models registry.
+
+    Matching is done on the BASENAME: workflow references may carry a
+    subfolder prefix ("moss\\moss_image_sft_bf16.safetensors") while every
+    registry is keyed by the plain file name. Without this a prefixed
+    reference silently missed the registry and the row showed "无链接".
+    """
     models = load_popular_models()
-    filename_lower = filename.lower()
+    base = os.path.basename(filename or '')
+    filename_lower = base.lower()
 
     # Exact match
-    if filename in models:
-        return models[filename].get('url', '')
+    if base in models:
+        return models[base].get('url', '')
 
     # Case-insensitive match
     for name, info in models.items():
@@ -674,73 +779,1112 @@ def lookup_url_in_popular_models(filename):
 
 
 def lookup_url_in_model_list(filename):
-    """Look up URL from model-list.json with fuzzy matching"""
+    """Look up URL from model-list.json (STRICT matching only).
+
+    v1.8.1-fix: the old substring fuzzy match ('ae' in 'taeh3' etc.) resolved
+    wrong gated repos (e.g. taeh3 -> FLUX.1-schnell/ae.safetensors -> 401)
+    and the bad URL got cached forever. Exact match only now.
+    """
     models = load_model_list()
-    filename_lower = filename.lower()
-    filename_base = os.path.splitext(filename_lower)[0]
+    filename_lower = os.path.basename(filename or '').lower()
 
-    # Exact match first
+    # Exact match only
     for model in models:
         model_filename = model.get('filename', '')
-        if model_filename.lower() == filename_lower:
+        if os.path.basename(model_filename).lower() == filename_lower:
             return model.get('url', '')
-
-    # Fuzzy match - check if filename contains or is contained by model name
-    for model in models:
-        model_filename = model.get('filename', '')
-        model_base = os.path.splitext(model_filename.lower())[0]
-
-        # Check substring matches
-        if filename_base in model_base or model_base in filename_base:
-            url = model.get('url', '')
-            if url:
-                return url
 
     return None
 
 
+# ============================================================================
+# Curated known-good source overrides (fixes bad cached/mismatched URLs).
+# filename (lowercase) -> {url, hf_repo, hf_path}
+# Checked BEFORE any cache / registry lookup. Extend as needed.
+# ============================================================================
+
+KNOWN_GOOD_SOURCES = {
+    # taeh3 was wrongly resolved to gated FLUX.1-schnell/ae.safetensors (401)
+    'taeh3.safetensors': {
+        'url': 'https://huggingface.co/OzzyGT/taeh3/resolve/main/taeh3.safetensors',
+        'hf_repo': 'OzzyGT/taeh3',
+        'hf_path': 'taeh3.safetensors',
+        # KJ ModelPreviewOverrideKJ tiny_vae reads models/vae_approx —
+        # without this the scan guessed checkpoints/ and re-downloads
+        # duplicated the file there.
+        'directory': 'vae_approx',
+    },
+    # int8 convrot video vae was poisoned by the same FLUX cache entry
+    'minimax_h3_video_vae_int8_convrot.safetensors': {
+        'url': 'https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_video_vae_int8_convrot.safetensors',
+        'hf_repo': 'Comfy-Org/MiniMax-H3',
+        'hf_path': 'vae/minimax_h3_video_vae_int8_convrot.safetensors',
+        'directory': 'vae',
+    },
+    # real filename matches the workflow (ref2va, not the OCR-mangled 'rel2va').
+    # 19.5GB diffusion model: force diffusion_models/ (plugin would guess checkpoints/)
+    'minimax_h3_hybrid_fl2va_ref2va_b25-49-int8.safetensors': {
+        'url': 'https://huggingface.co/smhfacct/Minimax-H3-fl2va-ref2va-hybrid-models/resolve/main/minimax_h3_hybrid_fl2va_ref2va_b25-49-int8.safetensors',
+        'hf_repo': 'smhfacct/Minimax-H3-fl2va-ref2va-hybrid-models',
+        'hf_path': 'minimax_h3_hybrid_fl2va_ref2va_b25-49-int8.safetensors',
+        'directory': 'diffusion_models',
+        'size': 20970379632,
+    },
+    # alias kept for safety (case variants)
+    'minimax_h3_hybrid_fl2va_rel2va_b25-49-int8.safetensors': {
+        'url': 'https://huggingface.co/smhfacct/Minimax-H3-fl2va-ref2va-hybrid-models/resolve/main/minimax_h3_hybrid_fl2va_ref2va_b25-49-int8.safetensors',
+        'hf_repo': 'smhfacct/Minimax-H3-fl2va-ref2va-hybrid-models',
+        'hf_path': 'minimax_h3_hybrid_fl2va_ref2va_b25-49-int8.safetensors',
+        'directory': 'diffusion_models',
+        'size': 20970379632,
+    },
+    # Civitai 2837571 (tsolful Minimax H3 Turbo LoRAs), version v4 (README-verified name)
+    'minimax_h3_dmad_full_dareties_v4_step600_comfy_fro.safetensors': {
+        'url': 'https://civitai.com/api/download/models/3391964?fileId=3281483',
+        'directory': 'loras',
+    },
+    # --- H3 companion LoRAs (all verified via Range GET, 2026-10-18) ---
+    'h3_combat_v2.safetensors': {
+        'url': 'https://huggingface.co/JOKER141/MiniMax-H3-Combat-Base-V2/resolve/main/H3_Combat_V2.safetensors',
+        'hf_repo': 'JOKER141/MiniMax-H3-Combat-Base-V2',
+        'hf_path': 'H3_Combat_V2.safetensors',
+        'directory': 'loras',
+    },
+    'h3_fight_flow_v1.safetensors': {
+        'url': 'https://huggingface.co/JOKER141/H3-Fight-Flow-Fight-Interaction-LoRA/resolve/main/H3_Fight_Flow_V1.safetensors',
+        'hf_repo': 'JOKER141/H3-Fight-Flow-Fight-Interaction-LoRA',
+        'hf_path': 'H3_Fight_Flow_V1.safetensors',
+        'directory': 'loras',
+    },
+    'h3_speed_slider_1.1.safetensors': {
+        'url': 'https://huggingface.co/RunningHubAI/rh-h3-speed-slider-1.1-lora/resolve/main/H3_speed_slider_1.1.safetensors',
+        'hf_repo': 'RunningHubAI/rh-h3-speed-slider-1.1-lora',
+        'hf_path': 'H3_speed_slider_1.1.safetensors',
+        'directory': 'loras',
+    },
+    'motion_repair_v2.safetensors': {
+        'url': 'https://huggingface.co/JOKER141/MiniMax-H3-General-Motion-Continuity-Repair/resolve/main/Motion_Repair_V2.safetensors',
+        'hf_repo': 'JOKER141/MiniMax-H3-General-Motion-Continuity-Repair',
+        'hf_path': 'Motion_Repair_V2.safetensors',
+        'directory': 'loras',
+    },
+    'mysticxxx_mmh3-v1.safetensors': {
+        'url': 'https://civitai.com/api/download/models/3226233?fileId=3108441',
+        'directory': 'loras',
+    },
+    'minimax_h3_latent_upscaler_3d_fp16_v2.safetensors': {
+        'url': 'https://huggingface.co/KENIC-1/minimax_h3_latent_upscaler_3d_fp16_V2/resolve/main/minimax_h3_latent_upscaler_3d_fp16_V2.safetensors',
+        'hf_repo': 'KENIC-1/minimax_h3_latent_upscaler_3d_fp16_V2',
+        'hf_path': 'minimax_h3_latent_upscaler_3d_fp16_V2.safetensors',
+        'directory': 'upscale_models',
+    },
+}
+
+
+def lookup_known_good_source(filename):
+    """Curated known-good source table, keyed by lowercase basename."""
+    base = os.path.basename(filename or '').lower()
+    if base in KNOWN_GOOD_SOURCES:
+        return KNOWN_GOOD_SOURCES[base]
+    # also try base without path separators variants
+    return KNOWN_GOOD_SOURCES.get((filename or '').lower())
+
+
+def resolve_model_directory(filename, model_dir=''):
+    """Single source of truth for which ComfyUI directory a model belongs in.
+
+    Both the workflow scan (check_model_exists) and the download threads used
+    to compute this independently, and the download side could override it via
+    KNOWN_GOOD_SOURCES['directory'] while the scan side kept its filename-based
+    guess. The result: a file landed in diffusion_models/ but the panel kept
+    asking for checkpoints/ and reported it as still missing forever.
+
+    Order: explicit caller directory -> curated table -> filename patterns.
+    """
+    base = os.path.basename(filename or '')
+    if model_dir:
+        return model_dir
+    kg = lookup_known_good_source(base)
+    if kg and kg.get('directory'):
+        return kg['directory']
+    _type, dir_from_name = identify_model_type_from_filename(base)
+    return dir_from_name or 'checkpoints'
+
+
+# ============================================================================
+# ModelScope (魔搭) support — domestic mirror, very fast on CN networks.
+# Used as a long-lived generic source, not tied to any single workflow.
+# ============================================================================
+
+MODELSCOPE_FILE_API = "https://modelscope.cn/api/v1/models/{repo}/repo/files"
+MODELSCOPE_RESOLVE = "https://modelscope.cn/models/{repo}/resolve/master/{path}"
+
+# Known-good namespaces that mirror ComfyUI's official model repos.
+# Keys are lowered repo-id fragments, values are the ModelScope repo to try first.
+MODELSCOPE_REPO_HINTS = {
+    'comfy-org': 'Comfy-Org',
+    'minimax': 'Comfy-Org/MiniMax-H3',
+    'hunyuan': 'Comfy-Org/HunyuanVideo',
+    'wan': 'Wan-AI',
+    'qwen': 'qwen',
+    'flux': 'Comfy-Org/flux',
+    'sd3': 'Comfy-Org/stable-diffusion-3',
+    'sdxl': 'Comfy-Org/stable-diffusion-xl',
+}
+
+
+def _modelscope_headers():
+    return {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                      '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': 'https://modelscope.cn/',
+    }
+
+
+MODELSCOPE_MAX_ROOTS = 12          # recursion depth cap for directory walk
+_MODELSCOPE_LIST_CACHE = {}        # repo -> {path, size} list (in-memory, per process)
+
+
+def _modelscope_list_dir(repo, root='', timeout=20):
+    """List one directory level of a ModelScope repo.
+
+    Returns (files, subdirs). Entries with Size==0 and no extension are treated
+    as directories (ModelScope reports dirs as Size 0).
+    """
+    try:
+        url = MODELSCOPE_FILE_API.format(repo=repo)
+        params = {'Revision': 'master'}
+        if root:
+            params['Root'] = root
+        r = requests.get(url, params=params, headers=_modelscope_headers(), timeout=timeout)
+        if r.status_code != 200:
+            return [], []
+        data = r.json()
+        entries = (data.get('Data') or {}).get('Files') or []
+    except Exception as e:
+        logging.debug(f"[WMD] ModelScope list failed for {repo}[/{root}]: {e}")
+        return [], []
+
+    files, subdirs = [], []
+    for f in entries:
+        if not isinstance(f, dict) or not f.get('Name'):
+            continue
+        name = f['Name']
+        path = (root + '/' + name) if root else name
+        size = f.get('Size') or 0
+        # Size 0 + no dot => directory
+        if size == 0 and '.' not in name:
+            subdirs.append(path)
+        else:
+            files.append({'path': path, 'size': size})
+    return files, subdirs
+
+
+def modelscope_list_files(repo, timeout=20, max_roots=MODELSCOPE_MAX_ROOTS):
+    """Recursively list every file of a ModelScope repo. [{path, size}]"""
+    if repo in _MODELSCOPE_LIST_CACHE:
+        return _MODELSCOPE_LIST_CACHE[repo]
+
+    all_files, subdirs = _modelscope_list_dir(repo, '', timeout)
+    # BFS over subdirectories (dir names come back as plain 'diffusion_models')
+    queue = list(subdirs)
+    visited = set(queue)
+    while queue and len(visited) <= max_roots:
+        cur = queue.pop(0)
+        files, subs = _modelscope_list_dir(repo, cur, timeout)
+        all_files.extend(files)
+        for s in subs:
+            if s not in visited:
+                visited.add(s)
+                queue.append(s)
+
+    _MODELSCOPE_LIST_CACHE[repo] = all_files
+    logging.debug(f"[WMD] ModelScope {repo}: listed {len(all_files)} files")
+    return all_files
+
+
+def _modelscope_file_to_dir(path):
+    """Map a ModelScope repo-relative path to a ComfyUI model directory."""
+    p = path.lower()
+    table = [
+        ('diffusion_models', 'diffusion_models'), ('text_encoders', 'text_encoders'),
+        ('vae/', 'vae'), ('vae_approx', 'vae_approx'), ('loras/', 'loras'),
+        ('lora/', 'loras'), ('controlnet', 'controlnet'), ('clip_vision', 'clip_vision'),
+        ('embeddings', 'embeddings'), ('upscale', 'upscale_models'),
+        ('animatediff', 'animatediff_models'), ('controlnet/', 'controlnet'),
+        ('ipadapter', 'ipadapter'), ('instantid', 'instantid'), ('pulid', 'pulid'),
+        ('sams/', 'sams'), ('insightface', 'insightface/models'),
+        ('facerestore', 'facerestore_models'), ('unet/', 'unet'), ('checkpoints', 'checkpoints'),
+        ('style_models', 'style_models'), ('model_patches', 'model_patches'),
+    ]
+    for needle, d in table:
+        if needle in p:
+            return d
+    return None
+
+
+def search_modelscope(filename, model_dir=None):
+    """Search ModelScope for an exact-filename match.
+
+    Returns a list of candidate dicts:
+      {url, source:'modelscope', repo, path, directory, size, priority}
+    Only exact basename matches are returned — the plugin's contract is to match
+    the workflow's model name, not to guess a similar-sounding file.
+    """
+    base = os.path.basename(filename or '')
+    if not base:
+        return []
+
+    repos = []
+    # 1. explicit KNOWN_GOOD_SOURCES hint
+    kg = lookup_known_good_source(filename)
+    if kg and kg.get('modelscope_repo'):
+        repos.append(kg['modelscope_repo'])
+    # 2. dir-aware hints (only namespaces that actually host ComfyUI mirrors)
+    name_lower = (base + ' ' + (model_dir or '')).lower()
+    for needle, repo in MODELSCOPE_REPO_HINTS.items():
+        if needle in name_lower:
+            repos.append(repo)
+    # 3. broad fallback: Comfy-Org namespace hosts most mirrored repos
+    repos.append('Comfy-Org')
+
+    seen, out = set(), []
+    for repo in dict.fromkeys(repos):
+        for f in modelscope_list_files(repo):
+            if os.path.basename(f['path']).lower() == base.lower():
+                d = _modelscope_file_to_dir(f['path'])
+                if d is None:
+                    continue
+                out.append({
+                    'url': MODELSCOPE_RESOLVE.format(repo=repo, path=f['path']),
+                    'source': 'modelscope',
+                    'repo': repo,
+                    'path': f['path'],
+                    'directory': d,
+                    'size': f['size'],
+                })
+                seen.add(repo)
+                break
+        if repo in seen and len(out) >= 1:
+            break
+    return out
+
+
+def probe_url_speed(url, bytes_to_fetch=256 * 1024, timeout=6):
+    """Measure download speed of a URL by fetching a small byte range.
+
+    Returns (speed_bytes_per_sec, total_bytes_or_None). Never raises.
+    """
+    try:
+        t0 = time.time()
+        with requests.get(url, headers={'Range': f'bytes=0-{bytes_to_fetch - 1}'},
+                          stream=True, timeout=timeout, allow_redirects=True) as r:
+            if r.status_code not in (200, 206):
+                return None, None
+            total = r.headers.get('Content-Range')
+            total = int(total.split('/')[-1]) if total and '/' in total else None
+            n = 0
+            for chunk in r.iter_content(262144):
+                if not chunk:
+                    continue
+                n += len(chunk)
+                if n >= bytes_to_fetch or time.time() - t0 > timeout:
+                    break
+        dt = time.time() - t0
+        if n <= 0 or dt <= 0:
+            return None, None
+        return n / dt, total
+    except Exception:
+        return None, None
+
+
+
+# ============================================================================
+# Reliable-source scoring (P2)
+# ============================================================================
+# The panel used to offer a flat list of same-name mirrors and let the user
+# guess. Three objective, checkable signals decide which mirror is right:
+#
+#   1. SIZE  - the remote file size must match the size the workflow
+#      expects. Same-name files differ in size when they are different
+#      quantisations (int8_convrot vs full bf16), and picking the wrong one
+#      yields a file ComfyUI cannot load.
+#   2. DIRECTORY - the file's path inside the repo must live in the same
+#      ComfyUI folder the workflow expects (diffusion_models/, text_encoders/,
+#      ...). A publisher's own repo mirrors the ComfyUI layout; a random
+#      re-upload usually drops the file at the repo root.
+#   3. OFFICIAL - the repo belongs to a namespace that publishes the
+#      ComfyUI-ready layout (Comfy-Org, Kijai, Lightx2v, RunningHubAI).
+#
+# Every signal is recorded on the candidate so the UI can SHOW the evidence
+# instead of asking the user to trust a name.
+
+# Tolerance for the size comparison. Remote metadata and the local
+# safetensors header can disagree by a few bytes; 1% covers it.
+_SIZE_TOLERANCE = 0.01
+
+
+def _expected_model_size(filename, model_dir=None):
+    """The size this model is expected to have, or None when unknown.
+
+    Sources, in order:
+      * the safetensors header of an in-flight .partial file
+      * the safetensors header of a (truncated) local file
+      * the size the running download reported
+      * a cached entry in model_metadata.json
+
+    IMPORTANT: a .partial file's CURRENT byte count is NOT the expected size
+    (a 4.6 GB partial of a 9.7 GB model would make every candidate look
+    "wrong size"). The safetensors header sits at the very beginning of the
+    file and states the full tensor data size, so it gives the right
+    number even for a half-downloaded file.
+    """
+    base = os.path.basename(filename or '')
+    if not base:
+        return None
+
+    # 1) the in-flight partial file - its header states the total size
+    try:
+        partial = _find_file_by_basename(base + '.partial')
+    except Exception:
+        partial = None
+    if partial:
+        try:
+            status, expected = verify_safetensors_file(partial)
+            if expected and status in ('truncated', 'ok'):
+                return expected
+        except Exception:
+            pass
+
+    # 2) the header of a truncated / complete local file
+    try:
+        local = _find_file_by_basename(base)
+    except Exception:
+        local = None
+    if local:
+        try:
+            status, expected = verify_safetensors_file(local)
+            if expected and status in ('truncated', 'ok'):
+                return expected
+        except Exception:
+            pass
+
+    # 3) the size the running download reported (total, not downloaded)
+    try:
+        with download_lock:
+            for prog in download_progress.values():
+                if (prog.get('filename') or '').lower().endswith(base.lower()):
+                    total = prog.get('total_size') or 0
+                    if total:
+                        return int(total)
+    except Exception:
+        pass
+
+    # 4) a cached size from a previous lookup
+    try:
+        cached = get_cached_metadata(base) or {}
+        if cached.get('size'):
+            return int(cached['size'])
+    except Exception:
+        pass
+
+    return None
+
+
+def _hf_remote_size(url, timeout=10):
+    """Remote file size in bytes for a HuggingFace resolve URL.
+
+    Uses HEAD (cheap) and falls back to a 1-byte Range GET for hosts that
+    reject HEAD. Returns None when the size cannot be determined.
+    """
+    if not url:
+        return None
+    try:
+        resp = requests.head(url, timeout=timeout, allow_redirects=True)
+        size = resp.headers.get('X-Linked-Size') or resp.headers.get('Content-Length')
+        if size:
+            return int(size)
+        if resp.status_code not in (200, 206):
+            return None
+    except Exception:
+        pass
+    try:
+        resp = requests.get(url, headers={'Range': 'bytes=0-0'}, timeout=timeout,
+                            allow_redirects=True, stream=True)
+        cr = resp.headers.get('Content-Range', '')
+        if '/' in cr:
+            tail = cr.rsplit('/', 1)[-1].strip()
+            if tail.isdigit():
+                return int(tail)
+        size = resp.headers.get('Content-Length')
+        if size and resp.status_code == 200:
+            return int(size)
+    except Exception:
+        pass
+    return None
+
+
+def score_candidates(cands, filename, model_dir=None, expected_size=None):
+    """Attach evidence + a score to every candidate, best first.
+
+    Mutates and returns the list. Each candidate gains:
+      'size_match'   True/False/None  (None = size unknown, not a mismatch)
+      'dir_match'    True/False/None
+      'official'     True/False
+      'score'        int, higher is better
+      'evidence'     human readable list of why this candidate ranked here
+    """
+    if not cands:
+        return cands
+
+    if expected_size is None:
+        expected_size = _expected_model_size(filename, model_dir)
+    want_dir = (model_dir or resolve_model_directory(filename) or '').lower()
+
+    # Remote sizes are fetched in parallel - one HEAD per candidate.
+    urls = [c.get('url', '') for c in cands]
+    sizes = {}
+    if urls:
+        with ThreadPoolExecutor(max_workers=min(8, len(urls))) as pool:
+            futs = {pool.submit(_hf_remote_size, u): c for u, c in zip(urls, cands)}
+            for fut in as_completed(futs):
+                try:
+                    sizes[id(futs[fut])] = fut.result()
+                except Exception:
+                    sizes[id(futs[fut])] = None
+
+    for c in cands:
+        score = 0
+        evidence = []
+        official = False
+        repo_l = (c.get('repo') or '').lower()
+        for pref in _HF_OFFICIAL_PREFIXES:
+            if repo_l.startswith(pref):
+                official = True
+                break
+        c['official'] = official
+
+        # --- signal 1: size ---
+        remote = sizes.get(id(c)) or c.get('size') or 0
+        c['remote_size'] = remote
+        if expected_size and remote:
+            delta = abs(remote - expected_size)
+            if delta <= max(1, int(expected_size * _SIZE_TOLERANCE)):
+                c['size_match'] = True
+                score += 100
+                evidence.append(f"大小匹配 {format_size(remote)}")
+            else:
+                c['size_match'] = False
+                score -= 100
+                evidence.append(f"大小不符 远端 {format_size(remote)}"
+                                f" / 期望 {format_size(expected_size)}")
+        else:
+            c['size_match'] = None
+
+        # --- signal 2: directory layout ---
+        path = (c.get('path') or '').lower()
+        if want_dir and path:
+            head = path.split('/')[0]
+            if head == want_dir:
+                c['dir_match'] = True
+                score += 40
+                evidence.append(f"目录匹配 {want_dir}/")
+            elif '/' not in path:
+                c['dir_match'] = False
+                score -= 15
+                evidence.append("仓库根目录（无 ComfyUI 目录结构）")
+            else:
+                c['dir_match'] = False
+                evidence.append(f"目录为 {head}/，期望 {want_dir}/")
+        else:
+            c['dir_match'] = None
+
+        # --- signal 3: official namespace ---
+        if official:
+            score += 30
+            evidence.append("官方发布仓库")
+
+        # --- tie breakers ---
+        score += min(10, (c.get('likes') or 0) // 10)
+        score += min(5, (c.get('downloads') or 0) // 1000)
+
+        c['score'] = score
+        c['evidence'] = evidence
+
+    cands.sort(key=lambda c: -c.get('score', 0))
+    return cands
+
+
+def select_reliable_source(cands, filename, model_dir=None, expected_size=None):
+    """Pick the best candidate and return (best, reason) or (None, reason).
+
+    A candidate is only accepted when it is CONFIRMED - i.e. it either
+    matches the expected size, or it is an official namespace with a
+    directory layout that matches the expected ComfyUI folder. An
+    unconfirmed candidate is still returned, but flagged, so the UI can
+    present it as a guess instead of a fact.
+    """
+    if not cands:
+        return None, '没有找到任何同名来源'
+
+    scored = score_candidates(cands, filename, model_dir, expected_size)
+    best = scored[0]
+
+    confirmed = (best.get('size_match') is True) or (
+        best.get('official') and best.get('dir_match') is True)
+
+    if best.get('size_match') is True:
+        reason = '大小已校验：' + '；'.join(best.get('evidence') or [])
+    elif confirmed:
+        reason = '官方源已确认：' + '；'.join(best.get('evidence') or [])
+    else:
+        reason = '最佳猜测（未完全确认）：' + '；'.join(best.get('evidence') or [])
+
+    best['confirmed'] = confirmed
+    return best, reason
+
+
+def collect_source_candidates(filename, model_dir=None):
+    """Collect every candidate download URL for a workflow model filename.
+
+    Order: curated KNOWN_GOOD_SOURCES -> ModelScope -> HF/Civitai registries.
+    Each candidate carries its source label so the UI can show provenance.
+    """
+    cands = []
+    base = os.path.basename(filename or '')
+
+    kg = lookup_known_good_source(filename)
+    if kg and kg.get('url'):
+        cands.append({
+            'url': kg['url'], 'source': 'known_good',
+            'repo': kg.get('hf_repo', ''), 'directory': kg.get('directory', ''),
+            'size': kg.get('size', 0),
+        })
+
+    try:
+        cands.extend(search_modelscope(filename, model_dir))
+    except Exception as e:
+        logging.debug(f"[WMD] ModelScope search error: {e}")
+
+    # Every exact-name mirror on HuggingFace. find_model_url() only returns
+    # ONE url, so without this the panel can never show the user the choice
+    # of mirrors to download from.
+    try:
+        cands.extend(search_huggingface_candidates(filename, model_dir))
+    except Exception as e:
+        logging.debug(f"[WMD] HF candidate search error: {e}")
+
+    # Fallback registries, tried AFTER the HF mirrors so that a rich HF
+    # record is never shadowed by a bare url-only record. The old order
+    # (registry first) made the official repo show up with an empty repo
+    # name, because find_model_url()'s record had no repo/path/size.
+    url, src = find_model_url(filename, search_apis=True)
+    if url:
+        cands.append({'url': url, 'source': src or 'search',
+                      'directory': model_dir or '', 'size': 0,
+                      'repo': '', 'path': '', 'hf_repo': '', 'hf_path': ''})
+
+    # dedupe by url, keep the RICHEST record (repo/path/size/official)
+    out, by_url = [], {}
+    for c in cands:
+        u = c.get('url')
+        if not u:
+            continue
+        prev = by_url.get(u)
+        if prev is None:
+            by_url[u] = c
+            out.append(c)
+            continue
+        # merge: fill in whatever the new record knows and the old one lacks
+        for k in ('repo', 'path', 'hf_repo', 'hf_path', 'directory', 'size',
+                  'likes', 'downloads', 'source', 'official'):
+            if not prev.get(k) and c.get(k):
+                prev[k] = c[k]
+    return out
+
+
+def pick_best_candidate(cands, probe_bytes=1 * 1024 * 1024, top_n=1):
+    """Speed-test candidates and rank them fastest-first.
+
+    Runs the probes sequentially (small ranges) — cheap and predictable.
+    Returns (ranked_list, best_candidate_or_None). Candidates that fail the
+    probe are dropped.
+    """
+    ranked = []
+    if cands:
+        with ThreadPoolExecutor(max_workers=min(8, len(cands))) as pool:
+            futs = {pool.submit(probe_url_speed, c['url'], probe_bytes): c
+                    for c in cands}
+            for fut in as_completed(futs):
+                c = futs[fut]
+                try:
+                    speed, total = fut.result()
+                except Exception:
+                    speed, total = None, None
+                if speed and speed > 0:
+                    c2 = dict(c)
+                    c2['speed_bps'] = speed
+                    if total and not c2.get('size'):
+                        c2['size'] = total
+                    ranked.append(c2)
+    ranked.sort(key=lambda x: -x['speed_bps'])
+    best = ranked[0] if ranked else None
+    return ranked[:max(top_n, 1)], best
+
+
+def find_model_url_with_sources(filename, model_dir=None, auto_select=True):
+    """Resolve a filename to its best download source.
+
+    Returns (best_candidate, all_ranked_candidates).
+    - Exact-name matches only; when none exists, this returns (None, [call list])
+      and the caller should present the alternatives to the user to choose.
+    """
+    cands = collect_source_candidates(filename, model_dir)
+    if not cands:
+        return None, []
+    if not auto_select:
+        return cands[0], cands
+
+    # Evidence-based pick (size / directory / official namespace). The
+    # speed probe is kept as a tie-breaker only, so a slow-but-correct
+    # official mirror still wins over a fast-but-wrong repack.
+    scored = score_candidates(cands, filename, model_dir)
+    best = select_reliable_source(scored, filename, model_dir)[0]
+    return best, scored
+
+
+# Token-level "junk" that never identifies a model family and would make any
+# two unrelated filenames look identical.
+_SUGGEST_IGNORE_TOKENS = {
+    'safetensors', 'ckpt', 'pt', 'pth', 'bin', 'onnx', 'gguf', 'sft',
+    'comfy', 'comfyui', 'comyu', 'fro', 'frozen', 'prune', 'pruned',
+    'fp16', 'fp32', 'bf16', 'fp8', 'int8', 'w6a8', 'w4a8', 'nvfp4',
+    'e4m3fn', 'e5m2', 'scaled', 'convrot', 'emaonly', 'only', 'q4', 'q5',
+    'q6', 'q8', 'km', 'q4_0', 'f16', 'v1', 'v2', 'v3', 'v4',
+    'x', 'y', 'step', 'steps', 'final', 'latest', 'master', 'main',
+    'model', 'models', 'mini', 'small', 'full', 'lite', 'pro', 'ultra',
+    'awq', 'gptq', 'gguf', 'tensor', 'split', 'part', 'shard',
+    # provenance / packaging words: they describe HOW a file was made, not WHAT
+    # model it is, and they differ between the two sources of the same model
+    'hybrid', 'merged', 'merge', 'ref2va', 'fl2va', 'rel2va', 'b25',
+}
+
+
+def _name_tokens(name):
+    """Meaningful lowercase tokens of a filename (quant/format noise removed)."""
+    stem = os.path.splitext(os.path.basename(name or ''))[0]
+    toks = re.split(r'[-_.\s/]+', stem.lower())
+    return {t for t in toks if t and t not in _SUGGEST_IGNORE_TOKENS and not t.isdigit()}
+
+
+def suggest_alternative_models(filename, model_dir=None):
+    """Suggest downloadable alternatives when no exact-name source exists.
+
+    Uses token overlap (shared identifying tokens such as minimax/h3/fl2va)
+    rather than raw string similarity — quantization and provenance tokens like
+    'hybrid', 'pruned', 'int8' inflate edit distance and hide real siblings.
+    """
+    base = os.path.splitext(os.path.basename(filename or ''))[0]
+    if not base:
+        return []
+    want = _name_tokens(filename)
+    if not want:
+        return []
+
+    out = []
+    for repo in ('Comfy-Org/MiniMax-H3', 'Comfy-Org'):
+        try:
+            files = modelscope_list_files(repo)
+        except Exception:
+            continue
+        for f in files:
+            fbase = os.path.basename(f['path'])
+            if fbase.lower() == os.path.basename(filename or '').lower():
+                continue        # exact name would have matched already
+            have = _name_tokens(fbase)
+            if not have:
+                continue
+            shared = want & have
+            if not shared:
+                continue
+            # require a real family: a meaningful share of BOTH token sets is shared
+            jaccard = len(shared) / len(want | have)
+            containment = len(shared) / min(len(want), len(have))
+            if jaccard < 0.4 or containment < 0.6:
+                continue
+            d = _modelscope_file_to_dir(f['path'])
+            if not d:
+                continue
+            out.append({
+                'filename': fbase,
+                'url': MODELSCOPE_RESOLVE.format(repo=repo, path=f['path']),
+                'source': 'modelscope',
+                'repo': repo,
+                'path': f['path'],
+                'directory': d,
+                'size': f['size'],
+                'similarity': round(jaccard, 3),
+                'match_quality': round(containment, 3),
+                'matched_tokens': sorted(shared),
+            })
+    # best matches first: joint similarity, then how much of the smaller
+    # token set is covered (favours candidates the user can actually use)
+    # and, when similarity ties (common for quant variants of one family),
+    # the file whose size is closest to the wanted file — that is the
+    # variant a user can most plausibly drop in as a replacement.
+    # Size of the wanted file comes from the curated table / cached metadata
+    # (the exact name is by definition absent on ModelScope here)
+    want_size = 0
+    kg = lookup_known_good_source(filename)
+    if kg and kg.get('size'):
+        want_size = kg['size']
+    out.sort(key=lambda x: (-x['similarity'], -x['match_quality'],
+                            abs(x.get('size', 0) - want_size) if want_size else 0))
+    seen, uniq = set(), []
+    for o in out:
+        if o['filename'].lower() not in seen:
+            seen.add(o['filename'].lower())
+            uniq.append(o)
+    return uniq[:12]
+
+
+# --- HuggingFace candidate search -------------------------------------------
+# The previous implementation searched /api/models?search=<full filename stem>
+# and then listed /tree/main (top level only). Both assumptions break on the
+# way HuggingFace actually stores these files:
+#   * /api/models?search= matches REPO NAMES. Repos are named after the model
+#     FAMILY ("Comfy-Org/MiniMax-H3"), not after the file
+#     ("minimax_h3_fl2va_bf16.safetensors"), so a filename query misses them.
+#   * /tree/main without ?recursive=1 returns only the top level, so every
+#     file inside loras/ diffusion_models/ text_encoders/ is invisible.
+# Fix: derive the family tokens from the filename, query with those, and walk
+# the repo tree recursively. Every candidate is confirmed by exact basename.
+
+_HF_CANDIDATE_CACHE = {}
+_HF_REPO_FILE_CACHE = {}
+_HF_OFFICIAL_PREFIXES = ('comfy-org/', 'kijai/', 'lightx2v/', 'runninghubai/')
+
+# Disk cache for HF candidate lookups. The in-memory dict is lost on every
+# ComfyUI restart, which made the first scan after each restart pay the
+# full network cost again. The cache is keyed by "<basename>|<dir>" and
+# holds only public repo metadata (URL, size, path), so it is safe to keep.
+_HF_CANDIDATE_DISK_CACHE = os.path.join(EXTENSION_PATH, 'hf_candidate_cache.json')
+_HF_CANDIDATE_DISK_MAX_AGE = 7 * 24 * 3600      # 1 week
+_HF_CANDIDATE_DISK_LOCK = threading.Lock()
+
+
+def _load_hf_disk_cache():
+    """Load the on-disk HF candidate cache. Never raises."""
+    try:
+        if not os.path.exists(_HF_CANDIDATE_DISK_CACHE):
+            return {}
+        with open(_HF_CANDIDATE_DISK_CACHE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except Exception as e:
+        logging.debug(f"[WMD] HF disk cache load failed: {e}")
+        return {}
+
+
+def _save_hf_disk_cache(cache):
+    """Persist the HF candidate cache. Never raises."""
+    try:
+        tmp = _HF_CANDIDATE_DISK_CACHE + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump(cache, f, indent=1)
+        os.replace(tmp, _HF_CANDIDATE_DISK_CACHE)
+    except Exception as e:
+        logging.debug(f"[WMD] HF disk cache save failed: {e}")
+
+
+def _hf_candidate_cache_get(cache_key):
+    """Cache lookup: memory first, then disk (with age check)."""
+    with _HF_CANDIDATE_DISK_LOCK:
+        if cache_key in _HF_CANDIDATE_CACHE:
+            return _HF_CANDIDATE_CACHE[cache_key]
+        disk = _load_hf_disk_cache()
+        entry = disk.get(cache_key)
+        if not entry:
+            return None
+        try:
+            age = time.time() - float(entry.get('ts', 0))
+        except (TypeError, ValueError):
+            age = _HF_CANDIDATE_DISK_MAX_AGE + 1
+        if age > _HF_CANDIDATE_DISK_MAX_AGE:
+            return None
+        cands = entry.get('candidates') or []
+        _HF_CANDIDATE_CACHE[cache_key] = cands
+        return cands
+
+
+def _hf_candidate_cache_put(cache_key, cands):
+    """Cache store: memory + disk."""
+    with _HF_CANDIDATE_DISK_LOCK:
+        _HF_CANDIDATE_CACHE[cache_key] = cands
+        disk = _load_hf_disk_cache()
+        disk[cache_key] = {
+            'ts': time.time(),
+            'candidates': cands,
+        }
+        # keep the file from growing without bound
+        if len(disk) > 2000:
+            cutoff = time.time() - _HF_CANDIDATE_DISK_MAX_AGE
+            disk = {k: v for k, v in disk.items()
+                    if (v.get('ts') or 0) >= cutoff}
+        _save_hf_disk_cache(disk)
+
+
+def _hf_candidate_rank(c):
+    """Order candidates: official namespaces first, then popularity.
+
+    Official prefixes are checked case-insensitively; 'comfy-org/' covers the
+    publisher namespace Comfy uses for official ComfyUI-ready repos
+    (e.g. Comfy-Org/MOSS-Image), which is exactly the repo a workflow
+    author means.
+    """
+    official = 0
+    repo_l = (c.get('repo') or '').lower()
+    for i, pref in enumerate(_HF_OFFICIAL_PREFIXES):
+        if repo_l.startswith(pref):
+            official = len(_HF_OFFICIAL_PREFIXES) - i
+            break
+    return (-official, -(c.get('likes') or 0), -(c.get('downloads') or 0))
+
+
+_HF_VERSION_TOKEN_RE = re.compile(r'^v?\d+(\.\d+)*$')
+
+
+def _hf_family_tokens(filename):
+    """Identifying tokens of a filename, used to build repo search queries.
+
+    Drops quantisation/packaging noise (_SUGGEST_IGNORE_TOKENS), plain version
+    numbers (v0.1, v2) and tokens that START with a digit (4step, 32b, 3d).
+    Tokens that merely CONTAIN a digit are kept on purpose: they are often
+    the most identifying part of a model family ("h3", "fl2va", "qwen3vl").
+    """
+    stem = os.path.splitext(os.path.basename(filename or ''))[0]
+    toks = re.split(r'[-_.\s/]+', stem.lower())
+    out, seen = [], set()
+    for t in toks:
+        if not t or t in _SUGGEST_IGNORE_TOKENS:
+            continue
+        if t[0].isdigit():
+            continue
+        if _HF_VERSION_TOKEN_RE.match(t):
+            continue
+        if t in seen:
+            continue
+        seen.add(t)
+        out.append(t)
+    return out
+
+
+def _hf_search_queries(filename):
+    """Repo search queries for a filename.
+
+    HF's /api/models?search= is a SUBSTRING match on the repo name, so the
+    useful query is a run of ADJACENT identifying tokens ("minimax_h3"), not
+    the whole filename stem and not a prefix either - the family name can
+    sit anywhere in the file name
+    (qwen3vl_32b_minimax_h3_int8_convrot -> "minimax_h3").
+    """
+    toks = _hf_family_tokens(filename)
+    if not toks:
+        return []
+
+    queries = []
+    def add(q):
+        if q and q not in queries:
+            queries.append(q)
+
+    # adjacent windows, most specific first
+    n = len(toks)
+    for size in (2, 3):
+        for i in range(0, n - size + 1):
+            add('_'.join(toks[i:i + size]))
+    # single tokens as a last resort (broad)
+    for t in toks:
+        add(t)
+    # hyphenated variants of the windows (repo names commonly use '-')
+    base = list(queries)
+    for q in base:
+        add(q.replace('_', '-'))
+    return queries
+
+
+def _hf_repos_containing(query, target_basename, limit=40):
+    """Repos whose file list contains target_basename exactly.
+    Returns [{repo, likes, downloads}] (discovery only, no file path yet)."""
+    try:
+        hf_api = apply_hf_mirror('https://huggingface.co')
+        url = (f"{hf_api}/api/models?search={urllib.parse.quote(query)}"
+               f"&limit={limit}&full=true")
+        resp = requests.get(url, timeout=20)
+        if resp.status_code != 200:
+            return []
+        repos = resp.json()
+    except Exception as e:
+        logging.debug(f"[WMD] HF repo search failed for '{query}': {e}")
+        return []
+    out = []
+    for rp in (repos if isinstance(repos, list) else []):
+        rid = rp.get('id', '')
+        if not rid:
+            continue
+        for sib in (rp.get('siblings') or []):
+            rfn = sib.get('rfilename') or ''
+            if rfn and os.path.basename(rfn) == target_basename:
+                out.append({
+                    'repo': rid,
+                    'likes': rp.get('likes', 0) or 0,
+                    'downloads': rp.get('downloads', 0) or 0,
+                })
+                break
+    return out
+
+
+def _hf_repo_file_info(repo_id, target_basename):
+    """{path, size} for target_basename inside repo (recursive tree), or None."""
+    key = (repo_id, target_basename)
+    if key in _HF_REPO_FILE_CACHE:
+        return _HF_REPO_FILE_CACHE[key]
+    info = None
+    try:
+        hf_api = apply_hf_mirror('https://huggingface.co')
+        url = f"{hf_api}/api/models/{urllib.parse.quote(repo_id)}/tree/main?recursive=1"
+        resp = requests.get(url, timeout=20)
+        if resp.status_code == 200:
+            for t in resp.json():
+                if t.get('type') != 'file':
+                    continue
+                path = t.get('path', '')
+                if os.path.basename(path) == target_basename:
+                    info = {'path': path, 'size': t.get('size', 0) or 0}
+                    break
+    except Exception as e:
+        logging.debug(f"[WMD] HF tree failed for {repo_id}: {e}")
+    _HF_REPO_FILE_CACHE[key] = info
+    return info
+
+
+def _hf_fulltext_repos(target_basename, limit=20):
+    """Repos mentioning the filename, via the HF full-text index."""
+    try:
+        hf_api = apply_hf_mirror('https://huggingface.co')
+        url = (f"{hf_api}/api/search/full-text?q={urllib.parse.quote(target_basename)}"
+               f"&type=model&limit={limit}")
+        resp = requests.get(url, timeout=20)
+        if resp.status_code != 200:
+            return []
+        hits = resp.json().get('hits', [])
+    except Exception as e:
+        logging.debug(f"[WMD] HF full-text search failed for {target_basename}: {e}")
+        return []
+    out, seen = [], set()
+    for h in hits:
+        rid = h.get('name')
+        if rid and rid not in seen:
+            seen.add(rid)
+            out.append(rid)
+    return out
+
+
+def search_huggingface_candidates(filename, model_dir=None):
+    """Every exact-name download candidate on HuggingFace for `filename`.
+
+    Returns [{url, source, repo, path, directory, size, hf_repo, hf_path}],
+    best first (official namespaces, then popularity). The panel lists these
+    so the user can pick which mirror to download from - nothing is fetched
+    until the user clicks download.
+    """
+    global _HF_CANDIDATE_CACHE
+
+    base = os.path.basename(filename or '')
+    if not base:
+        return []
+
+    cache_key = f"{base}|{model_dir or ''}"
+    cached = _hf_candidate_cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    found = {}   # repo -> {repo, likes, downloads}
+    queries = _hf_search_queries(base)
+
+    # Stage 1: family-token repo search, all queries in parallel.
+    if queries:
+        with ThreadPoolExecutor(max_workers=min(8, len(queries))) as pool:
+            for res in pool.map(lambda q: _hf_repos_containing(q, base), queries):
+                for r in res:
+                    found.setdefault(r['repo'], r)
+
+    # Stage 2: full-text search. Community repos are often named after
+    # something else entirely ("Minimax_h3_latent_Upscaler", "selflift-bundle"),
+    # so no family-token query reaches them. The full-text index does.
+    if len(found) < 3:
+        for rid in _hf_fulltext_repos(base):
+            if rid not in found:
+                found[rid] = {'repo': rid, 'likes': 0, 'downloads': 0}
+
+    # Stage 3: confirm the exact file inside every candidate repo, in parallel.
+    repos = list(found.values())
+    infos = {}
+    if repos:
+        with ThreadPoolExecutor(max_workers=min(8, len(repos))) as pool:
+            futs = {pool.submit(_hf_repo_file_info, r['repo'], base): r['repo']
+                    for r in repos}
+            for fut in as_completed(futs):
+                info = fut.result()
+                if info:
+                    infos[futs[fut]] = info
+
+    cands = []
+    for r in repos:
+        info = infos.get(r['repo'])
+        if not info:
+            continue
+        path = info['path']
+        directory = model_dir or _modelscope_file_to_dir(path) or resolve_model_directory(base)
+        cands.append({
+            'url': f"https://huggingface.co/{r['repo']}/resolve/main/{path}",
+            'source': 'huggingface_api',
+            'repo': r['repo'],
+            'path': path,
+            'directory': directory,
+            'size': info['size'],
+            'hf_repo': r['repo'],
+            'hf_path': path,
+            'likes': r.get('likes', 0),
+            'downloads': r.get('downloads', 0),
+        })
+
+    cands.sort(key=_hf_candidate_rank)
+    _hf_candidate_cache_put(cache_key, cands)
+    logging.info(f"[WMD] HF candidates for {base}: {len(cands)} "
+                 f"({', '.join(c['repo'] for c in cands[:5])})")
+    return cands
+
+
 def search_huggingface_api(filename):
-    """Search HuggingFace API for a model file"""
+    """Search HuggingFace for an exact-name model file. Returns the best URL."""
     global _url_search_cache
 
     cache_key = f"hf_{filename}"
     if cache_key in _url_search_cache:
         return _url_search_cache[cache_key]
 
+    url = None
     try:
-        # Search for repos containing this filename
-        filename_base = os.path.splitext(filename)[0]
-        search_url = f"https://huggingface.co/api/models?search={urllib.parse.quote(filename_base)}&limit=5"
-
-        response = requests.get(search_url, timeout=10)
-        if response.status_code == 200:
-            repos = response.json()
-
-            for repo in repos:
-                repo_id = repo.get('id', '')
-                if not repo_id:
-                    continue
-
-                # Check if this repo has the file
-                files_url = f"https://huggingface.co/api/models/{repo_id}/tree/main"
-                try:
-                    files_response = requests.get(files_url, timeout=10)
-                    if files_response.status_code == 200:
-                        files = files_response.json()
-                        for file_info in files:
-                            if file_info.get('path', '').endswith(filename):
-                                url = f"https://huggingface.co/{repo_id}/resolve/main/{file_info['path']}"
-                                _url_search_cache[cache_key] = url
-                                logging.info(f"[Workflow-Models-Downloader] Found {filename} on HuggingFace: {repo_id}")
-                                return url
-                except Exception:
-                    continue
-
+        cands = search_huggingface_candidates(filename)
+        if cands:
+            url = cands[0]['url']
+            logging.info(f"[Workflow-Models-Downloader] Found {filename} on HuggingFace: {cands[0]['repo']}")
     except Exception as e:
         logging.debug(f"[Workflow-Models-Downloader] HuggingFace API search failed: {e}")
 
-    _url_search_cache[cache_key] = None
-    return None
+    _url_search_cache[cache_key] = url
+    return url
 
 
 def search_civitai_api(filename):
@@ -909,11 +2053,17 @@ def search_tavily_api(filename):
 def find_model_url(filename, search_apis=False):
     """
     Try to find download URL for a model using multiple sources:
-    1. Popular models registry (curated list)
-    2. model-list.json (ComfyUI Manager)
-    3. HuggingFace API search (if search_apis=True)
-    4. CivitAI API search (if search_apis=True)
+    1. Curated known-good overrides
+    2. Popular models registry (curated list)
+    3. model-list.json (ComfyUI Manager, exact match only)
+    4. HuggingFace API search (if search_apis=True)
+    5. CivitAI API search (if search_apis=True)
     """
+    # 0. Curated known-good table (beats everything, fixes stale/poisoned entries)
+    kg = lookup_known_good_source(filename)
+    if kg and kg.get('url'):
+        return kg['url'], 'known_good'
+
     # 1. Check popular models registry
     url = lookup_url_in_popular_models(filename)
     if url:
@@ -1005,8 +2155,10 @@ FILENAME_TYPE_PATTERNS = [
     # Upscalers
     (r'esrgan|realesrgan|swinir|upscale|4x[-_]|2x[-_]|rgt', 'Upscaler', 'upscale_models'),
 
-    # AnimateDiff
-    (r'animatediff|motion[-_]?module|mm[-_]?', 'AnimateDiff', 'animatediff_models'),
+    # AnimateDiff. 'mm' only counts when it starts an AnimateDiff-style filename
+    # (mm_sd_v15, mm_sdxl...); a bare 'mm' otherwise swallows unrelated names
+    # like MysticXXX_MMH3 and sends a LoRA to animatediff_models/.
+    (r'animatediff|motion[-_]?module|mm[-_]?sd|mm[-_]?sdxl', 'AnimateDiff', 'animatediff_models'),
     (r'motion[-_]?lora', 'Motion LoRA', 'animatediff_motion_lora'),
 
     # Depth models
@@ -1031,6 +2183,39 @@ FILENAME_TYPE_PATTERNS = [
 ]
 
 # URL path to directory mapping
+# Node-type -> model directory. This is ComfyUI's own loading rule: what
+# matters is not where a URL path or a filename suggests the file should go,
+# but which folder the loader node actually reads from at run time
+# (LoraLoaderModelOnly reads loras/, VAELoader reads vae/, ...). Loader nodes
+# not listed here fall through to the URL/keyword heuristics.
+NODE_TYPE_DIRECTORIES = {
+    'LoraLoader': 'loras',
+    'LoraLoaderModelOnly': 'loras',
+    'VAELoader': 'vae',
+    'UNETLoader': 'diffusion_models',
+    'UnetLoaderGGUF': 'diffusion_models',
+    'CLIPLoader': 'text_encoders',
+    'CLIPLoaderGGUF': 'text_encoders',
+    'DualCLIPLoader': 'text_encoders',
+    'TripleCLIPLoader': 'text_encoders',
+    'QuadrupleCLIPLoader': 'text_encoders',
+    'CLIPVisionLoader': 'clip_vision',
+    'ControlNetLoader': 'controlnet',
+    'DiffControlNetLoader': 'controlnet',
+    'UpscaleModelLoader': 'upscale_models',
+    'CheckpointLoaderSimple': 'checkpoints',
+    'CheckpointLoader': 'checkpoints',
+    'unCLIPCheckpointLoader': 'checkpoints',
+    'ImageOnlyCheckpointLoader': 'checkpoints',
+    'StyleModelLoader': 'style_models',
+    'HypernetworkLoader': 'hypernetworks',
+    'GLIGENLoader': 'gligen',
+    'IPAdapterModelLoader': 'ipadapter',
+    'InsightFaceLoader': 'insightface/models',
+    'SAMLoader': 'sams',
+    'UltralyticsDetectorProvider': 'ultralytics',
+}
+
 URL_DIRECTORY_HINTS = {
     '/diffusion_models/': 'diffusion_models',
     '/latent_upscale_models/': 'latent_upscale_models',
@@ -1334,6 +2519,189 @@ def invalidate_folder_cache(folder_type):
         logging.debug(f"[WMD] Could not invalidate cache: {e}")
 
 
+# ---- runtime node introspection: authoritative model folder per node type ----
+# A node's file-picker combo options ARE folder_paths.get_filename_list(X) as
+# evaluated by the node itself at run time - the only ground truth for "which
+# folder does this node read". Deriving the directory from workflows/filenames/
+# URLs can only ever guess; asking the node class cannot be wrong.
+_NODE_COMBO_CACHE = {'t': 0.0, 'map': {}}
+
+
+def _node_combo_options(node_type):
+    """[(input_name, [option strings)] for a node type's file-picker combos. Cached 30s."""
+    now = time.time()
+    cache = _NODE_COMBO_CACHE
+    if now - cache['t'] > 30.0:
+        cache['map'], cache['t'] = {}, now
+    if node_type in cache['map']:
+        return cache['map'][node_type]
+    combos = []
+    try:
+        import nodes as comfy_nodes
+        cls = comfy_nodes.NODE_CLASS_MAPPINGS.get(node_type)
+        it = getattr(cls, 'INPUT_TYPES', None) if cls else None
+        res = None
+        if it:
+            try:
+                res = it()
+            except TypeError:
+                res = it(cls)
+        if isinstance(res, dict):
+            for section in ('required', 'optional'):
+                for iname, spec in (res.get(section) or {}).items():
+                    if not isinstance(spec, (list, tuple)) or len(spec) < 2:
+                        continue
+                    opts = spec[0]
+                    extra = spec[1] if isinstance(spec[1], dict) else {}
+                    # classic style: (['a.safetensors', ...], {...})
+                    # io.Combo style: ('COMBO', {'options': [...]})
+                    if isinstance(opts, str) and opts.upper() in ('COMBO', 'STRING'):
+                        opts = extra.get('options')
+                    if not isinstance(opts, (list, tuple)):
+                        continue
+                    strs = [o for o in opts if isinstance(o, str)]
+                    if strs:
+                        combos.append((iname, strs))
+    except Exception as e:
+        logging.debug(f"[WMD] INPUT_TYPES probe failed for {node_type}: {e}")
+    cache['map'][node_type] = combos
+    return combos
+
+
+def _folder_from_options(options):
+    """Reverse-map a combo option list to the model folder it was built from.
+    Returns (folder_type, containment_score)."""
+    file_opts = {o for o in options
+                 if os.path.splitext(o)[1].lower() in SUPPORTED_MODEL_EXTENSIONS}
+    if not file_opts:
+        return None, 0.0
+    best, score = None, 0.0
+    for name in folder_paths.folder_names_and_paths:
+        try:
+            fl = set(folder_paths.get_filename_list(name))
+        except Exception:
+            continue
+        if not fl:
+            continue
+        s = len(file_opts & fl) / len(file_opts)
+        if s > score:
+            best, score = name, s
+    return best, score
+
+
+def authoritative_folder_for(filename, node_type):
+    """(folder, 'visible'|'missing') from the node's own option lists, or None.
+
+    'visible' - the file appears in the node's picker (that folder is correct).
+    'missing' - the picker clearly maps to folder X (>=60% of options live
+    there, same extension as the target) and the file is NOT in it: placing
+    the file in X is the only way this node can see it.
+    """
+    if not filename or not node_type:
+        return None
+    base = os.path.basename(filename)
+    ext = os.path.splitext(base)[1].lower()
+    fallback = None
+    for _iname, opts in _node_combo_options(node_type):
+        for o in opts:
+            if o == filename or os.path.basename(o) == base:
+                folder, _s = _folder_from_options(opts)
+                return (folder, 'visible') if folder else None
+        folder, score = _folder_from_options(opts)
+        if folder and score >= 0.6:
+            same_ext = any(os.path.splitext(o)[1].lower() == ext for o in opts)
+            if same_ext and fallback is None:
+                fallback = (folder, 'missing')
+    return fallback
+
+
+_BASENAME_INDEX = {'built_at': 0.0, 'map': {}}
+
+
+def verify_safetensors_file(path):
+    """Check a .safetensors file for truncation using its own header.
+
+    A safetensors file starts with an 8-byte little-endian header length
+    followed by a JSON map whose tensor offsets describe the data region, so
+    the file states its own expected total size: 8 + header_len + max(offset
+    end). A download that died mid-stream (old versions had no resume) leaves
+    a final-name file that passes naive "exists" checks but is garbage to
+    ComfyUI. Returns (status, expected_bytes):
+      'ok'        complete file
+      'truncated' header valid, file shorter than header promises
+      'corrupt'   header unreadable/insane (also covers non-safetensors)
+      'unknown'   not a .safetensors name - no cheap structural check
+    """
+    if not path or not os.path.isfile(path):
+        return 'unknown', None
+    # A download in flight is written to "<name>.safetensors.partial" - its
+    # header is intact and states the FULL size, so the check works on it
+    # too (that is how the expected size of a half-downloaded model is
+    # known). Accept any name that CONTAINS .safetensors.
+    if '.safetensors' not in os.path.basename(path).lower():
+        return 'unknown', None
+    try:
+        size = os.path.getsize(path)
+        if size < 8:
+            return 'corrupt', None
+        with open(path, 'rb') as f:
+            header_len = struct.unpack('<Q', f.read(8))[0]
+            # Real headers are KB-scale; MB-scale means a garbage/shifted file
+            if header_len == 0 or header_len > 32 * 1024 * 1024 or 8 + header_len > size:
+                return 'corrupt', None
+            header = json.loads(f.read(header_len))
+        expected = 8 + header_len
+        for key, meta in header.items():
+            if key == '__metadata__' or not isinstance(meta, dict):
+                continue
+            ends = meta.get('data_offsets')
+            if isinstance(ends, list) and ends:
+                expected = max(expected, 8 + header_len + int(ends[-1]))
+        if size < expected:
+            return 'truncated', expected
+        return 'ok', expected
+    except Exception as e:
+        logging.debug(f"[WMD] safetensors verify failed for {path}: {e}")
+        return 'corrupt', None
+
+
+def _find_file_by_basename(filename):
+    """Locate a file by basename anywhere under every configured model folder.
+
+    Compliments check_model_exists' directory-scoped lookup: when the download
+    side and the scan side disagree about the target folder (or the user moved
+    a file by hand) the directory-scoped lookup reports "missing" forever even
+    though ComfyUI would happily load the file. Results are cached in-process
+    and rebuilt at most once every 10s, and only on the miss path, so the fast
+    path (file in the expected folder) never pays for it.
+    Returns the full path or None.
+    """
+    base = os.path.basename(filename or '')
+    if not base:
+        return None
+    now = time.time()
+    idx = _BASENAME_INDEX
+    if now - idx['built_at'] > 10.0:
+        index, folders = {}, []
+        try:
+            # folder_names_and_paths is ComfyUI's own registry: name -> [dirs, exts]
+            folders = [d for e in folder_paths.folder_names_and_paths.values() for d in e[0]]
+        except Exception as e:
+            logging.debug(f"[WMD] Could not enumerate model folders: {e}")
+            return None
+        for folder in folders:
+            if not os.path.isdir(folder):
+                continue
+            for root, dirs, files in os.walk(folder):
+                dirs[:] = [d for d in dirs if d not in ('.git',)]
+                for f in files:
+                    key = f.lower()
+                    if key not in index or len(os.path.join(root, f)) < len(index[key]):
+                        index[key] = os.path.join(root, f)
+        idx['map'], idx['built_at'] = index, now
+    return idx['map'].get(base.lower())
+
+
 def check_model_exists(target_dir, filename):
     """Check if model file exists using ComfyUI's folder_paths system.
     This ensures we match exactly what ComfyUI can find and load."""
@@ -1383,6 +2751,24 @@ def check_model_exists(target_dir, filename):
             logging.debug(f"[WMD] Could not check {check_dir}: {e}")
             continue
 
+    # Global fallback: the file may exist somewhere other than the directory
+    # the scan expected. This is the normal case when the curated table forces
+    # a directory that the filename patterns would never guess (e.g. the 19.5GB
+    # hybrid model -> diffusion_models while the scan said checkpoints), and
+    # it also covers any file the user placed manually elsewhere.
+    global_hit = _find_file_by_basename(filename)
+    if global_hit:
+        try:
+            size_bytes = os.path.getsize(global_hit)
+            size_mb = size_bytes / (1024 * 1024)
+            size_str = f"{size_mb/1024:.2f} GB" if size_mb >= 1024 else f"{size_mb:.1f} MB"
+            logging.info(
+                f"[WMD] {filename} found at {global_hit} (different folder than '{target_dir}'); treating as installed"
+            )
+            return True, size_str
+        except Exception:
+            return True, None
+
     # Fallback: Also check by direct file path in case ComfyUI cache is stale
     try:
         if subpath:
@@ -1401,6 +2787,29 @@ def check_model_exists(target_dir, filename):
         logging.debug(f"[WMD] Direct path check failed: {e}")
 
     return False, None
+
+
+def check_model_integrity(target_dir, filename):
+    """check_model_exists + structural verification for .safetensors.
+
+    An old crash-interrupted download can leave a final-name file that is
+    truncated: it passes the naive exists check, the panel shows EXISTS,
+    download is never offered, and the workflow dies at run time. The file's
+    own safetensors header states its expected size, so verify after exists.
+    Returns (exists, size_str, incomplete, expected_bytes).
+    """
+    exists, size_str = check_model_exists(target_dir, filename)
+    if not exists:
+        return False, size_str, False, None
+    path = _find_file_by_basename(filename) or folder_paths.get_full_path(target_dir, filename)
+    status, expected = verify_safetensors_file(path)
+    if status in ('truncated', 'corrupt'):
+        logging.warning(
+            f"[WMD] {filename} at {path} is {status} "
+            f"({os.path.getsize(path):,} of {expected:,} bytes) - reporting MISSING so it re-downloads"
+        )
+        return False, size_str, True, expected
+    return True, size_str, False, expected
 
 
 def scan_workflow_for_models(workflow_json):
@@ -1551,17 +2960,49 @@ def scan_workflow_for_models(workflow_json):
         # Check if this model was found in node properties (authoritative source)
         from_node_properties = model in node_models
 
-        # First priority: use directory from node properties if available
-        if from_node_properties and node_models[model].get('directory'):
-            target_dir = node_models[model]['directory']
+        # Priority 0: runtime node introspection. The node class's own
+        # file-picker option list is literally get_filename_list(folder)
+        # evaluated by the node - ground truth for where this file must live.
+        # Beats even properties.models.directory (author-recorded, can be
+        # stale/wrong, e.g. animatediff_models on a LoraLoaderModelOnly file).
+        probe_node_type = node_models.get(model, {}).get('node_type', '')
+        auth = authoritative_folder_for(model, probe_node_type) if probe_node_type else None
+        auth_dir = auth[0] if (auth and auth[0]) else ''
+        if auth_dir and target_dir != auth_dir:
+            logging.info(f"[WMD] {model}: node {probe_node_type} reads from '{auth_dir}' ({auth[1]}); overriding scan directory '{target_dir}'")
 
-        # Second priority: Check URL for directory hints
-        elif url:
-            url_lower = url.lower()
-            for url_path, directory in URL_DIRECTORY_HINTS.items():
-                if url_path.lower() in url_lower:
-                    target_dir = directory
-                    break
+        # First priority: runtime truth wins over everything
+        if auth_dir:
+            target_dir = auth_dir
+        elif from_node_properties and node_models[model].get('directory'):
+            target_dir = node_models[model]['directory']
+        else:
+            # Second priority: the loader node type - ComfyUI's own rule for
+            # where a file must sit, because that is the folder the node reads
+            # at run time (LoraLoaderModelOnly -> loras/, VAELoader -> vae/).
+            # Beats URL keywords: a Civitai URL mentioning "animatediff" must
+            # not send a LoRA attached to LoraLoaderModelOnly into
+            # animatediff_models/ where the node would never look.
+            nt_dir = NODE_TYPE_DIRECTORIES.get(
+                node_models.get(model, {}).get('node_type', ''))
+            # Third priority: Check URL for directory hints
+            hinted = ''
+            if not nt_dir and url:
+                url_lower = url.lower()
+                for url_path, directory in URL_DIRECTORY_HINTS.items():
+                    if url_path.lower() in url_lower:
+                        hinted = directory
+                        break
+            if not hinted:
+                # No hint anywhere -> curated table FIRST (it knows where files
+                # really live, e.g. hybrid -> diffusion_models), then filename
+                # rules. Runs before the exists-check below so that the scan and
+                # the download thread agree on where this file belongs.
+                hinted = resolve_model_directory(model)
+            if not target_dir or target_dir in ('', 'checkpoints', 'models'):
+                # An unqualified guess (or the checkpoints fallback from a
+                # generic extension match) loses to a positive hint.
+                target_dir = nt_dir or hinted
 
         # Check for cached search metadata first
         cached_metadata = get_cached_metadata(model)
@@ -1586,8 +3027,9 @@ def scan_workflow_for_models(workflow_json):
             hf_repo = cached_metadata.get('hf_repo', '')
             hf_path = cached_metadata.get('hf_path', '')
 
-        # Check if model exists
-        exists, local_size = check_model_exists(target_dir, model)
+        # Check if model exists (with structural integrity verification:
+        # truncated safetensors are reported as missing, see check_model_integrity)
+        exists, local_size, incomplete, expected_bytes = check_model_integrity(target_dir, model)
 
         # Skip models found only via regex that have no URL and don't exist locally
         # These are likely false positives from markdown notes or comments
@@ -1612,12 +3054,32 @@ def scan_workflow_for_models(workflow_json):
         if not exists:
             alternatives = find_model_alternatives(model, target_dir)
 
+        # List every exact-name download mirror. The panel shows these so the
+        # user can choose which one to fetch - the plugin never downloads
+        # without an explicit click. Only looked up for models that are
+        # missing AND have no known url yet (the ones that used to say
+        # "无链接"); results are cached so re-scanning is cheap.
+        # NO network work here. A scan used to block for ~10s because
+        # every missing model triggered a live HF lookup. The frontend now
+        # resolves each missing model in the background through
+        # /workflow-models/resolve-source, so the table appears instantly.
+        mirrors = []
+        needs_resolve = (not exists) and (not url)
+
         models_data.append({
             'filename': model,
             'type': model_type,
             'directory': target_dir,
             'full_path': os.path.join(folder_paths.models_dir, target_dir, model),
+            # Where the file ACTUALLY lives (subdirectory-transparent search);
+            # empty when missing. UI uses this for the "open folder" button.
+            # Also resolved for incomplete files so the folder button can
+            # reveal the truncated remnant the user may want to delete.
+            'actual_path': (_find_file_by_basename(model) or '') if (exists or incomplete) else '',
             'exists': exists,
+            # truncated/corrupt file on disk: exists was True but unusable
+            'incomplete': incomplete,
+            'expected_size': expected_bytes,
             'local_size': local_size or '',
             'source': source,
             'url': url,
@@ -1626,7 +3088,28 @@ def scan_workflow_for_models(workflow_json):
             'node_type': node_type,
             'url_source': url_source or ('workflow' if url else None),
             'search_metadata': cached_metadata,
-            'alternatives': alternatives
+            'alternatives': alternatives,
+            # True when this row still needs a source lookup (the frontend
+            # fires resolve-source for it, in the background)
+            'needs_resolve': needs_resolve,
+            # every exact-name mirror the user can pick from
+            'mirrors': [{
+                'url': m.get('url', ''),
+                'repo': m.get('repo', ''),
+                'path': m.get('path', ''),
+                'directory': m.get('directory', ''),
+                'size': m.get('size', 0),
+                'size_str': format_size(m.get('size', 0)) if m.get('size') else '',
+                'source': m.get('source', ''),
+                'likes': m.get('likes', 0),
+                'downloads': m.get('downloads', 0),
+                'official': m.get('official', False),
+                'size_match': m.get('size_match'),
+                'dir_match': m.get('dir_match'),
+                'score': m.get('score', 0),
+                'evidence': m.get('evidence', []),
+                'confirmed': m.get('confirmed', False),
+            } for m in mirrors]
         })
 
         # Save URL to model_metadata.json if found (so Local Browser can see it)
@@ -1647,6 +3130,197 @@ def scan_workflow_for_models(workflow_json):
 # API ENDPOINTS
 # =============================================================================
 
+@routes.post("/workflow-models/source-candidates")
+async def get_source_candidates(request):
+    """List every candidate download source for a workflow model, ranked by speed.
+
+    Body: {filename, directory?, auto_select?}
+    auto_select=true  -> probes each candidate's speed and ranks fastest-first
+    auto_select=false -> returns the candidate list without probing
+
+    When the workflow filename has NO exact-name source anywhere, `best` is null
+    and `suggestions` carries same-family alternatives for the user to pick from.
+    """
+    try:
+        data = await request.json()
+        filename = data.get('filename', '')
+        directory = data.get('directory', '')
+        auto_select = data.get('auto_select', True)
+
+        if not filename:
+            return web.json_response({'error': '未提供文件名'}, status=400)
+
+        best, ranked = find_model_url_with_sources(filename, directory, auto_select)
+
+        out = {
+            'success': True,
+            'filename': filename,
+            'best': best,
+            'candidates': ranked if ranked else collect_source_candidates(filename, directory),
+        }
+
+        # No exact-name match anywhere -> offer same-family alternatives
+        if not best:
+            out['suggestions'] = suggest_alternative_models(filename, directory)
+        else:
+            out['suggestions'] = []
+
+        return web.json_response(out)
+    except Exception as e:
+        logging.error(f"[WMD] source-candidates error: {e}")
+        return web.json_response({'error': str(e)}, status=500)
+
+
+@routes.post("/workflow-models/resolve-source")
+async def resolve_source(request):
+    """Resolve the reliable download source for ONE model.
+
+    Body: {filename, directory?}
+
+    Runs the full candidate search, scores every candidate on objective
+    evidence (size match, directory layout, official namespace), picks the
+    best one and persists it. The frontend calls this in parallel for each
+    missing model, so the workflow scan itself stays instant.
+
+    Returns:
+      {success, best: {...}, candidates: [...], reason, confirmed}
+    """
+    try:
+        data = await request.json()
+        filename = data.get('filename', '')
+        directory = data.get('directory', '')
+        if not filename:
+            return web.json_response({'error': '未提供文件名'}, status=400)
+
+        cands = collect_source_candidates(filename, directory)
+        if not cands:
+            return web.json_response({
+                'success': True,
+                'filename': filename,
+                'best': None,
+                'candidates': [],
+                'reason': '没有找到任何同名来源',
+                'confirmed': False,
+            })
+
+        best, reason = select_reliable_source(cands, filename, directory)
+
+        # Remember it: the next scan shows a plain download button and
+        # needs no lookup at all.
+        if best and best.get('url'):
+            save_search_metadata(filename, {
+                'url': best['url'],
+                'source': 'auto_verified',
+                'hf_repo': best.get('repo') or best.get('hf_repo') or '',
+                'hf_path': best.get('path') or best.get('hf_path') or '',
+                'directory': directory or best.get('directory', ''),
+                'size': best.get('remote_size') or best.get('size') or 0,
+                'verified': bool(best.get('confirmed')),
+                'reason': reason,
+            })
+
+        def _pack(m):
+            return {
+                'url': m.get('url', ''),
+                'repo': m.get('repo', ''),
+                'path': m.get('path', ''),
+                'directory': m.get('directory', ''),
+                'size': m.get('size', 0),
+                'size_str': format_size(m.get('size', 0)) if m.get('size') else '',
+                'source': m.get('source', ''),
+                'likes': m.get('likes', 0),
+                'downloads': m.get('downloads', 0),
+                'official': m.get('official', False),
+                'size_match': m.get('size_match'),
+                'dir_match': m.get('dir_match'),
+                'score': m.get('score', 0),
+                'evidence': m.get('evidence', []),
+                'confirmed': m.get('confirmed', False),
+            }
+
+        return web.json_response({
+            'success': True,
+            'filename': filename,
+            'best': _pack(best) if best else None,
+            'candidates': [_pack(c) for c in cands],
+            'reason': reason,
+            'confirmed': bool(best.get('confirmed')) if best else False,
+        })
+    except Exception as e:
+        logging.error(f"[WMD] resolve-source error: {e}")
+        return web.json_response({'error': str(e)}, status=500)
+
+
+@routes.post("/workflow-models/find-mirrors")
+async def find_mirrors(request):
+    """List every exact-name download mirror for a workflow model.
+
+    Body: {filename, directory?}
+
+    Returns the candidate list WITHOUT downloading anything - the panel shows
+    the mirrors (repo, size, source) and the user picks which one to fetch.
+    """
+    try:
+        data = await request.json()
+        filename = data.get('filename', '')
+        directory = data.get('directory', '')
+        if not filename:
+            return web.json_response({'error': '未提供文件名'}, status=400)
+
+        cands = collect_source_candidates(filename, directory)
+
+        out = []
+        for c in cands:
+            size = c.get('size', 0) or 0
+            out.append({
+                'url': c.get('url', ''),
+                'source': c.get('source', ''),
+                'repo': c.get('repo', '') or c.get('hf_repo', ''),
+                'path': c.get('path', '') or c.get('hf_path', ''),
+                'directory': c.get('directory', '') or directory,
+                'size': size,
+                'size_str': format_size(size) if size else '',
+                'likes': c.get('likes', 0) or 0,
+                'downloads': c.get('downloads', 0) or 0,
+                'hf_repo': c.get('hf_repo', '') or c.get('repo', ''),
+                'hf_path': c.get('hf_path', '') or c.get('path', ''),
+                'official': c.get('official', False),
+                'size_match': c.get('size_match'),
+                'dir_match': c.get('dir_match'),
+                'score': c.get('score', 0),
+                'evidence': c.get('evidence', []),
+                'confirmed': c.get('confirmed', False),
+            })
+
+        return web.json_response({
+            'success': True,
+            'filename': filename,
+            'candidates': out,
+        })
+    except Exception as e:
+        logging.error(f"[WMD] find-mirrors error: {e}")
+        return web.json_response({'error': str(e)}, status=500)
+
+
+@routes.post("/workflow-models/suggest-alternatives")
+async def suggest_alternatives_endpoint(request):
+    """Same-family model alternatives when the exact filename has no source."""
+    try:
+        data = await request.json()
+        filename = data.get('filename', '')
+        directory = data.get('directory', '')
+        if not filename:
+            return web.json_response({'error': '未提供文件名'}, status=400)
+        return web.json_response({
+            'success': True,
+            'filename': filename,
+            'suggestions': suggest_alternative_models(filename, directory),
+        })
+    except Exception as e:
+        logging.error(f"[WMD] suggest-alternatives error: {e}")
+        return web.json_response({'error': str(e)}, status=500)
+
+
 @routes.post("/workflow-models/scan")
 async def scan_workflow(request):
     """Scan the provided workflow JSON for models"""
@@ -1655,7 +3329,7 @@ async def scan_workflow(request):
         workflow = data.get('workflow', {})
 
         if not workflow:
-            return web.json_response({'error': 'No workflow provided'}, status=400)
+            return web.json_response({'error': '未提供工作流'}, status=400)
 
         models = scan_workflow_for_models(workflow)
 
@@ -1978,7 +3652,7 @@ async def scan_all_workflows(request):
 
         if not os.path.exists(directory):
             return web.json_response({
-                'error': f'Directory not found: {directory}',
+                'error': f'目录不存在：{directory}',
                 'default_path': directory
             }, status=400)
 
@@ -2047,7 +3721,7 @@ async def clear_usage_cache(request):
 
         return web.json_response({
             'success': True,
-            'message': 'Usage cache cleared'
+            'message': '使用缓存已清理'
         })
     except Exception as e:
         logging.error(f"[WMD] Clear cache error: {e}")
@@ -2095,13 +3769,15 @@ async def check_model_exists_endpoint(request):
         directory = data.get('directory')
 
         if not filename or not directory:
-            return web.json_response({'error': 'Missing filename or directory'}, status=400)
+            return web.json_response({'error': '缺少文件名或目录'}, status=400)
 
-        exists, size = check_model_exists(directory, filename)
+        exists, size, incomplete, expected_bytes = check_model_integrity(directory, filename)
 
         return web.json_response({
             'exists': exists,
-            'size': size or ''
+            'size': size or '',
+            'incomplete': incomplete,
+            'expected_size': expected_bytes
         })
     except Exception as e:
         logging.error(f"[Workflow-Models-Downloader] Check exists error: {e}")
@@ -2116,7 +3792,7 @@ async def search_model_url(request):
         filename = data.get('filename')
 
         if not filename:
-            return web.json_response({'error': 'Missing filename'}, status=400)
+            return web.json_response({'error': '缺少文件名'}, status=400)
 
         # Search with API calls enabled
         url, source = find_model_url(filename, search_apis=True)
@@ -2135,7 +3811,7 @@ async def search_model_url(request):
         else:
             return web.json_response({
                 'success': False,
-                'message': 'No URL found for this model'
+                'message': '未找到该模型的链接'
             })
     except Exception as e:
         logging.error(f"[Workflow-Models-Downloader] Search URL error: {e}")
@@ -2207,7 +3883,7 @@ async def parse_workflow(request):
         workflow_path = data.get('path')
 
         if not workflow_path or not os.path.exists(workflow_path):
-            return web.json_response({'error': 'Invalid workflow path'}, status=400)
+            return web.json_response({'error': '无效的工作流路径'}, status=400)
 
         # Read and parse workflow
         with open(workflow_path, 'r', encoding='utf-8') as f:
@@ -2216,7 +3892,7 @@ async def parse_workflow(request):
         try:
             workflow_data = json.loads(workflow_content)
         except Exception:
-            return web.json_response({'error': 'Invalid JSON in workflow file'}, status=400)
+            return web.json_response({'error': '工作流文件 JSON 无效'}, status=400)
 
         logging.debug(f"[WMD] Parsing workflow: {workflow_path}")
 
@@ -2250,13 +3926,13 @@ async def advanced_search(request):
         filename = data.get('filename')
 
         if not filename:
-            return web.json_response({'error': 'Missing filename'}, status=400)
+            return web.json_response({'error': '缺少文件名'}, status=400)
 
         # Check if Tavily is configured
         if not get_tavily_api_key():
             return web.json_response({
                 'success': False,
-                'error': 'Tavily API key not configured'
+                'error': '未配置 Tavily API 密钥'
             }, status=400)
 
         # Check cache first
@@ -2327,12 +4003,12 @@ async def advanced_search(request):
                 return web.json_response({
                     'success': True,
                     'suggestions': suggestions,
-                    'message': 'No direct download URL found, but here are some relevant results'
+                    'message': '未找到直链，以下是一些相关结果'
                 })
 
         return web.json_response({
             'success': False,
-            'message': 'No results found for this model'
+            'message': '未找到该模型的结果'
         })
     except Exception as e:
         logging.error(f"[Workflow-Models-Downloader] Advanced search error: {e}")
@@ -2349,7 +4025,7 @@ async def search_alternatives(request):
         search_gguf = data.get('search_gguf', False)
 
         if not search_name:
-            return web.json_response({'error': 'Missing filename'}, status=400)
+            return web.json_response({'error': '缺少文件名'}, status=400)
 
         logging.info(f"[WMD] Search name: {search_name}, Original: {original_filename}")
 
@@ -2357,7 +4033,7 @@ async def search_alternatives(request):
         if not tavily_key:
             return web.json_response({
                 'success': False,
-                'error': 'Tavily API key not configured'
+                'error': '未配置 Tavily API 密钥'
             }, status=400)
 
         # Use tavily package
@@ -2366,7 +4042,7 @@ async def search_alternatives(request):
         except ImportError:
             return web.json_response({
                 'success': False,
-                'error': 'Tavily package not installed. Run: pip install tavily-python'
+                'error': '未安装 Tavily 包，请运行：pip install tavily-python'
             }, status=400)
 
         client = TavilyClient(tavily_key)
@@ -2481,7 +4157,7 @@ async def extract_source_from_results(request):
         directory = data.get('directory', '')
 
         if not filename or not results:
-            return web.json_response({'success': False, 'error': 'Missing filename or results'}, status=400)
+            return web.json_response({'success': False, 'error': '缺少文件名或搜索结果'}, status=400)
 
         logging.info(f"[WMD] Extracting source for: {filename} from {len(results)} results")
 
@@ -2563,7 +4239,7 @@ async def extract_source_from_results(request):
         if not best_source or best_score < 30:
             return web.json_response({
                 'success': False,
-                'message': 'No reliable source found in results'
+                'message': '搜索结果中没有可靠来源'
             })
 
         # Extract metadata from the best source URL
@@ -2637,7 +4313,7 @@ async def save_model_source(request):
         directory = data.get('directory', '')
 
         if not filename or not url:
-            return web.json_response({'success': False, 'error': 'Missing filename or url'}, status=400)
+            return web.json_response({'success': False, 'error': '缺少文件名或链接'}, status=400)
 
         logging.info(f"[WMD] Saving source for {filename}: {url}")
 
@@ -2693,7 +4369,7 @@ async def get_tavily_cache(request):
         else:
             return web.json_response({
                 'success': False,
-                'message': 'No cached results'
+                'message': '无缓存结果'
             })
 
     except Exception as e:
@@ -2728,7 +4404,7 @@ async def get_search_cache(request):
         else:
             return web.json_response({
                 'success': False,
-                'message': 'No cached metadata found'
+                'message': '未找到缓存元数据'
             })
     except Exception as e:
         logging.error(f"[Workflow-Models-Downloader] Get search cache error: {e}")
@@ -2744,7 +4420,7 @@ async def lookup_by_hash(request):
         directory = data.get('directory')
 
         if not filename or not directory:
-            return web.json_response({'error': 'Missing filename or directory'}, status=400)
+            return web.json_response({'error': '缺少文件名或目录'}, status=400)
 
         # Find the model file
         filepath = find_model_file_path(directory, filename)
@@ -2752,7 +4428,7 @@ async def lookup_by_hash(request):
         if not filepath:
             return web.json_response({
                 'success': False,
-                'message': 'Model file not found locally'
+                'message': '本地未找到模型文件'
             })
 
         # Calculate hash (this may take time for large files)
@@ -2762,7 +4438,7 @@ async def lookup_by_hash(request):
         if not file_hash:
             return web.json_response({
                 'success': False,
-                'message': 'Failed to calculate file hash'
+                'message': '计算文件哈希失败'
             })
 
         logging.info(f"[Workflow-Models-Downloader] Hash: {file_hash[:16]}... Looking up on CivitAI")
@@ -2787,7 +4463,7 @@ async def lookup_by_hash(request):
             return web.json_response({
                 'success': False,
                 'hash': file_hash,
-                'message': 'Model not found on CivitAI'
+                'message': 'CivitAI 上没有该模型'
             })
 
     except Exception as e:
@@ -2806,7 +4482,7 @@ async def download_from_url(request):
         target_dir = data.get('directory')
 
         if not all([url, filename, target_dir]):
-            return web.json_response({'error': 'Missing required fields (url, filename, directory)'}, status=400)
+            return web.json_response({'error': '缺少必填字段（url、filename、directory）'}, status=400)
 
         # Check if URL is actually a CivitAI URN and convert it
         if is_civitai_urn(url):
@@ -2815,7 +4491,7 @@ async def download_from_url(request):
                 logging.info(f"[Workflow-Models-Downloader] Converted CivitAI URN to download URL: {url} -> {civitai_url}")
                 url = civitai_url
             else:
-                return web.json_response({'error': 'Invalid CivitAI URN format'}, status=400)
+                return web.json_response({'error': '无效的 CivitAI URN 格式'}, status=400)
 
         # Generate download ID
         download_id = f"direct_{filename}".replace('/', '_').replace('\\', '_')
@@ -2823,7 +4499,7 @@ async def download_from_url(request):
         # Check if already downloading
         with download_lock:
             if download_id in download_progress and download_progress[download_id].get('status') == 'downloading':
-                return web.json_response({'error': 'Already downloading'}, status=400)
+                return web.json_response({'error': '该文件正在下载中'}, status=400)
 
             download_progress[download_id] = {
                 'status': 'starting',
@@ -2843,7 +4519,7 @@ async def download_from_url(request):
         return web.json_response({
             'success': True,
             'download_id': download_id,
-            'message': f'Started downloading {filename}'
+            'message': f'开始下载 {filename}'
         })
     except Exception as e:
         logging.error(f"[Workflow-Models-Downloader] Download URL error: {e}")
@@ -2863,7 +4539,7 @@ async def download_model(request):
         force = data.get('force', False)  # Force re-download even if exists
 
         if not all([hf_repo, filename, target_dir]):
-            return web.json_response({'error': 'Missing required fields'}, status=400)
+            return web.json_response({'error': '缺少必填字段'}, status=400)
 
         # Generate download ID
         download_id = f"{hf_repo}/{filename}".replace('/', '_')
@@ -2871,7 +4547,7 @@ async def download_model(request):
         # Check if already downloading
         with download_lock:
             if download_id in download_progress and download_progress[download_id].get('status') == 'downloading':
-                return web.json_response({'error': 'Already downloading'}, status=400)
+                return web.json_response({'error': '该文件正在下载中'}, status=400)
 
             download_progress[download_id] = {
                 'status': 'starting',
@@ -2891,7 +4567,7 @@ async def download_model(request):
         return web.json_response({
             'success': True,
             'download_id': download_id,
-            'message': f'Started downloading {filename}'
+            'message': f'开始下载 {filename}'
         })
     except Exception as e:
         logging.error(f"[Workflow-Models-Downloader] Download start error: {e}")
@@ -2907,7 +4583,110 @@ async def get_download_progress(request):
         if download_id in download_progress:
             return web.json_response(download_progress[download_id])
         else:
-            return web.json_response({'error': 'Download not found'}, status=404)
+            return web.json_response({'error': '未找到该下载任务'}, status=404)
+
+
+def _win_open_in_explorer(path):
+    """Reveal `path` in a FOREGROUND Explorer window, selecting the file.
+
+    Why not `explorer /select,`: Windows 11 only lets the foreground app
+    bring new windows to front. The ComfyUI server is a background
+    process, so spawning explorer.exe merely blinks the taskbar icon.
+    SHOpenFolderAndSelectItems routes activation through Explorer itself
+    (the shell is exempt from the foreground lock), so the window both
+    opens AND selects the file. Returns True on success.
+    """
+    try:
+        import ctypes
+        VP = ctypes.c_void_p
+        shell32 = ctypes.WinDLL('shell32')
+        # Shell API needs COM on this thread (aiohttp worker has none).
+        # S_OK  -> we own the init and must uninit;
+        # S_FALSE -> already init (don't uninit); RPC_E_CHANGED_MODE
+        # (0x80010106, MTA) -> still usable for shell calls, skip uninit.
+        hr_init = ctypes.windll.ole32.CoInitializeEx(None, 0)
+        if hr_init not in (0, 1):
+            hr_init = ctypes.windll.ole32.CoInitializeEx(None, 2)  # retry MTA
+        own_com = (hr_init == 0)
+        _sigs = (
+            ('SHParseDisplayName', ctypes.c_long,
+             [ctypes.c_wchar_p, VP, ctypes.POINTER(VP), ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]),
+            ('ILClone', VP, [VP]),
+            ('ILRemoveLastID', ctypes.c_int, [VP]),
+            ('ILFindChild', VP, [VP, VP]),
+            ('SHOpenFolderAndSelectItems', ctypes.c_long, [VP, ctypes.c_uint, ctypes.POINTER(VP), ctypes.c_uint32]),
+            ('ILFree', None, [VP]),
+        )
+        for _fn, _res, _args in _sigs:
+            _f = getattr(shell32, _fn)
+            _f.restype, _f.argtypes = _res, _args
+
+        pidl = VP()
+        attr = ctypes.c_uint32(0)
+        if shell32.SHParseDisplayName(os.path.abspath(path), None, ctypes.byref(pidl), 0, ctypes.byref(attr)) != 0 or not pidl:
+            return False
+        folder = None
+        ok = False
+        try:
+            # MSDN pattern: clone -> strip last id = parent folder;
+            # ILFindChild points at the file id INSIDE `pidl` (not owned).
+            folder = shell32.ILClone(pidl)
+            if folder and shell32.ILRemoveLastID(folder):
+                child = shell32.ILFindChild(folder, pidl)
+                if child:
+                    apidl = (VP * 1)(child)
+                    ok = shell32.SHOpenFolderAndSelectItems(folder, 1, apidl, 0) == 0
+            if not ok:
+                # Fall back to opening the containing folder (no selection)
+                ok = shell32.SHOpenFolderAndSelectItems(pidl, 0, None, 0) == 0
+        finally:
+            shell32.ILFree(pidl)
+            if folder:
+                shell32.ILFree(folder)
+            if own_com:
+                ctypes.windll.ole32.CoUninitialize()
+        return ok
+    except Exception as e:
+        logging.debug(f"[WMD] Shell-API reveal failed: {e}")
+        return False
+
+
+@routes.post("/workflow-models/open-folder")
+async def open_folder(request):
+    """Open the model's folder in the OS file manager, selecting the file.
+
+    Restricted to paths inside ComfyUI's models tree (same guard style as
+    delete_model) so the endpoint can't be used to reveal arbitrary files.
+    """
+    try:
+        data = await request.json()
+        path = data.get('path', '')
+        if not path or not os.path.exists(path):
+            return web.json_response({'error': '路径不存在'}, status=404)
+        path = os.path.abspath(path)
+
+        allowed_roots = [os.path.abspath(folder_paths.models_dir)]
+        try:
+            for e in folder_paths.folder_names_and_paths.values():
+                allowed_roots.extend(os.path.abspath(d) for d in e[0])
+        except Exception:
+            pass
+        if not any(path.startswith(root + os.sep) or path == root for root in allowed_roots):
+            return web.json_response({'error': '访问被拒绝：路径不在 models 目录内'}, status=403)
+
+        if os.name == 'nt':
+            if not _win_open_in_explorer(path):
+                # Fallback: classic explorer /select (known to only blink the
+                # taskbar icon under Windows 11 foreground-lock)
+                subprocess.Popen(['explorer', '/select,', path.replace('/', '\\')])
+        elif sys.platform == 'darwin':
+            subprocess.Popen(['open', '-R', path])
+        else:
+            subprocess.Popen(['xdg-open', os.path.dirname(path)])
+        return web.json_response({'ok': True, 'path': path})
+    except Exception as e:
+        logging.error(f"[WMD] open-folder failed: {e}")
+        return web.json_response({'error': str(e)}, status=500)
 
 
 @routes.get("/workflow-models/progress")
@@ -2927,9 +4706,9 @@ async def cancel_download(request):
             cancelled_downloads.add(download_id)
             download_progress[download_id]['status'] = 'cancelled'
             logging.info(f"[Workflow-Models-Downloader] Cancelled download: {download_id}")
-            return web.json_response({'success': True, 'message': 'Download cancelled'})
+            return web.json_response({'success': True, 'message': '下载已取消'})
         else:
-            return web.json_response({'error': 'Download not found'}, status=404)
+            return web.json_response({'error': '未找到该下载任务'}, status=404)
 
 
 @routes.get("/workflow-models/download-history")
@@ -2950,7 +4729,7 @@ async def clear_download_history_endpoint(request):
     clear_download_history()
     return web.json_response({
         'success': True,
-        'message': 'Download history cleared'
+        'message': '下载历史已清空'
     })
 
 
@@ -2965,7 +4744,7 @@ async def delete_history_item_endpoint(request):
             download_history = [h for h in download_history if h.get('filename') != filename]
             save_download_history()
             return web.json_response({'success': True})
-        return web.json_response({'error': 'Missing filename'}, status=400)
+        return web.json_response({'error': '缺少文件名'}, status=400)
     except Exception as e:
         return web.json_response({'error': str(e)}, status=500)
 
@@ -2996,62 +4775,48 @@ def _download_model_thread(download_id, hf_repo, hf_path, filename, target_dir):
         if hf_token:
             headers['Authorization'] = f'Bearer {hf_token}'
 
-        # Get file size first
-        try:
-            url = f"https://huggingface.co/{hf_repo}/resolve/main/{hf_path}"
-            response = requests.head(url, allow_redirects=True, timeout=10, headers=headers)
-            total_size = int(response.headers.get('content-length', 0))
-            with download_lock:
-                download_progress[download_id]['total_size'] = total_size
-        except Exception:
-            total_size = 0
-
-        # Download with progress callback
-        def progress_callback(downloaded, total):
-            with download_lock:
-                download_progress[download_id]['downloaded'] = downloaded
-                download_progress[download_id]['total_size'] = total
-                if total > 0:
-                    download_progress[download_id]['progress'] = int((downloaded / total) * 100)
-
-        # Use requests for download with progress
-        url = f"https://huggingface.co/{hf_repo}/resolve/main/{hf_path}"
         # Normalize filename path separators and create subdirectories if needed
         filename_normalized = filename.replace('/', os.sep).replace('\\', os.sep)
         dest_file = os.path.join(target_path, filename_normalized)
-        # Create parent directory if filename contains subdirectories
         dest_dir = os.path.dirname(dest_file)
         if dest_dir and not os.path.exists(dest_dir):
             os.makedirs(dest_dir, exist_ok=True)
 
-        response = requests.get(url, stream=True, timeout=30, headers=headers)
-        response.raise_for_status()
+        url = f"https://huggingface.co/{hf_repo}/resolve/main/{hf_path}"
 
-        total_size = int(response.headers.get('content-length', 0))
-        downloaded = 0
-        cancelled = False
+        # Curated known-good override wins over the requested repo
+        kg = lookup_known_good_source(filename)
+        if kg and kg.get('url'):
+            url = kg['url']
+            if kg.get('hf_repo'):
+                hf_repo, hf_path = kg['hf_repo'], kg.get('hf_path', '')
+            # Force the correct model directory (plugin's filename regex is unreliable:
+            # it files the 19.5GB hybrid diffusion model under checkpoints/)
+            kg_dir = kg.get('directory')
+            if kg_dir:
+                target_path = os.path.join(folder_paths.models_dir, kg_dir)
+                os.makedirs(target_path, exist_ok=True)
+                dest_file = os.path.join(target_path, filename_normalized)
+                logging.info(f"[Workflow-Models-Downloader] Forced directory for {filename}: {kg_dir}")
+            logging.info(f"[Workflow-Models-Downloader] Using known-good source for {filename}: {url}")
+        else:
+            # Verify the cached/resolved entry actually matches this repo;
+            # if model_metadata.json holds a stale/wrong URL, prefer the
+            # caller's repo (from the workflow panel) over the cache.
+            cached = get_cached_metadata(filename)
+            if cached and cached.get('url') and extract_huggingface_info(cached['url'])[0] != hf_repo:
+                logging.warning(f"[Workflow-Models-Downloader] Cached URL repo mismatch for {filename} "
+                                f"({extract_huggingface_info(cached['url'])[0]} != {hf_repo}); using workflow repo")
 
-        with open(dest_file, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks for faster downloads
-                # Check for cancellation
-                if download_id in cancelled_downloads:
-                    logging.info(f"[Workflow-Models-Downloader] Download cancelled: {filename}")
-                    cancelled = True
-                    break
+        # Resume-capable download with automatic retry (shared engine)
+        success, error = _resume_download_core(url, dest_file, download_id, headers)
 
-                if chunk:
-                    f.write(chunk)
-                    downloaded += len(chunk)
-                    progress_callback(downloaded, total_size)
-
-        # Handle cancellation after file is properly closed
-        if cancelled:
-            try:
-                os.remove(dest_file)
-            except OSError:
-                pass
+        if error == "Cancelled":
             cancelled_downloads.discard(download_id)
             return
+
+        if not success:
+            raise requests.exceptions.RequestException(error or "Download failed")
 
         with download_lock:
             download_progress[download_id]['status'] = 'completed'
@@ -3172,41 +4937,28 @@ def _download_from_url_thread(download_id, url, filename, target_dir):
             if hf_token:
                 headers['Authorization'] = f'Bearer {hf_token}'
 
-        # Download with progress
-        response = requests.get(url, stream=True, timeout=30, allow_redirects=True, headers=headers)
-        response.raise_for_status()
+        # Curated known-good override wins over a stale resolved URL
+        kg = lookup_known_good_source(filename)
+        if kg and kg.get('url'):
+            url = kg['url']
+            logging.info(f"[Workflow-Models-Downloader] Using known-good source for {filename}: {url}")
+            kg_dir = kg.get('directory')
+            if kg_dir:
+                target_path = os.path.join(folder_paths.models_dir, kg_dir)
+                os.makedirs(target_path, exist_ok=True)
+                dest_file = os.path.join(target_path, filename_normalized)
+                logging.info(f"[Workflow-Models-Downloader] Forced directory for {filename}: {kg_dir}")
 
-        total_size = int(response.headers.get('content-length', 0))
-        downloaded = 0
-        cancelled = False
+        # Resume-capable download with automatic retry (shared engine)
+        success, error = _resume_download_core(url, dest_file, download_id, headers)
 
-        with download_lock:
-            download_progress[download_id]['total_size'] = total_size
-
-        with open(dest_file, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks for faster downloads
-                # Check for cancellation
-                if download_id in cancelled_downloads:
-                    logging.info(f"[Workflow-Models-Downloader] Download cancelled: {filename}")
-                    cancelled = True
-                    break
-
-                if chunk:
-                    f.write(chunk)
-                    downloaded += len(chunk)
-                    with download_lock:
-                        download_progress[download_id]['downloaded'] = downloaded
-                        if total_size > 0:
-                            download_progress[download_id]['progress'] = int((downloaded / total_size) * 100)
-
-        # Handle cancellation after file is properly closed
-        if cancelled:
-            try:
-                os.remove(dest_file)
-            except OSError:
-                pass
+        # Handle cancellation / failure after engine returns
+        if error == "Cancelled":
             cancelled_downloads.discard(download_id)
             return
+
+        if not success:
+            raise requests.exceptions.RequestException(error or "Download failed")
 
         with download_lock:
             download_progress[download_id]['status'] = 'completed'
@@ -3323,7 +5075,9 @@ async def get_settings(request):
             'civitai_api_key_set': bool(settings.get('civitai_api_key', '')),
             'tavily_api_key_set': bool(settings.get('tavily_api_key', '')),
             'enable_advanced_search': settings.get('enable_advanced_search', False),
-            'max_parallel_downloads': settings.get('max_parallel_downloads', 3)
+            'max_parallel_downloads': settings.get('max_parallel_downloads', 3),
+            'use_hf_mirror': settings.get('use_hf_mirror', False),
+            'hf_mirror_domain': settings.get('hf_mirror_domain', 'hf-mirror.com')
         }
         return web.json_response(masked)
     except Exception as e:
@@ -3363,6 +5117,14 @@ async def update_settings(request):
         if 'enable_advanced_search' in data:
             current['enable_advanced_search'] = bool(data['enable_advanced_search'])
 
+        if 'use_hf_mirror' in data:
+            current['use_hf_mirror'] = bool(data['use_hf_mirror'])
+
+        if 'hf_mirror_domain' in data:
+            dom = str(data['hf_mirror_domain'] or '').strip()
+            if dom:
+                current['hf_mirror_domain'] = dom
+
         if 'max_parallel_downloads' in data:
             try:
                 val = int(data['max_parallel_downloads'])
@@ -3376,7 +5138,7 @@ async def update_settings(request):
         if save_settings(current):
             return web.json_response({'success': True})
         else:
-            return web.json_response({'error': 'Failed to save settings'}, status=500)
+            return web.json_response({'error': '保存设置失败'}, status=500)
     except Exception as e:
         logging.error(f"[Workflow-Models-Downloader] Update settings error: {e}")
         return web.json_response({'error': str(e)}, status=500)
@@ -3653,7 +5415,7 @@ async def get_node_info_endpoint(request):
     try:
         node_type = request.query.get('node_type', '')
         if not node_type:
-            return web.json_response({'error': 'node_type required'}, status=400)
+            return web.json_response({'error': '需要 node_type'}, status=400)
 
         # 1. Check local database first
         info = get_node_info(node_type)
@@ -3815,7 +5577,7 @@ async def find_and_save_model_url(request):
         filename = data.get('filename')
 
         if not filename:
-            return web.json_response({'error': 'filename required'}, status=400)
+            return web.json_response({'error': '需要文件名'}, status=400)
 
         basename = os.path.basename(filename)
 
@@ -3865,7 +5627,7 @@ async def find_and_save_model_url(request):
         else:
             return web.json_response({
                 'success': False,
-                'message': 'No URL found on HuggingFace or CivitAI'
+                'message': 'HuggingFace 或 CivitAI 上未找到链接'
             })
     except Exception as e:
         logging.error(f"[WMD] Find model URL error: {e}")
@@ -4039,7 +5801,7 @@ async def get_model_url(request):
     try:
         filename = request.query.get('filename', '')
         if not filename:
-            return web.json_response({'error': 'Filename required'}, status=400)
+            return web.json_response({'error': '需要文件名'}, status=400)
 
         basename = os.path.basename(filename)
         result = {
@@ -4141,9 +5903,9 @@ async def save_model_url(request):
         url = data.get('url', '')
 
         if not filename:
-            return web.json_response({'error': 'Filename required'}, status=400)
+            return web.json_response({'error': '需要文件名'}, status=400)
         if not url:
-            return web.json_response({'error': 'URL required'}, status=400)
+            return web.json_response({'error': '需要链接'}, status=400)
 
         basename = os.path.basename(filename)
 
@@ -4176,7 +5938,7 @@ async def save_model_url(request):
             logging.info(f"[WMD] Saved user URL for {basename}: {url}")
             return web.json_response({'success': True})
         else:
-            return web.json_response({'error': 'Failed to save'}, status=500)
+            return web.json_response({'error': '保存失败'}, status=500)
     except Exception as e:
         logging.error(f"[WMD] Save model URL error: {e}")
         return web.json_response({'error': str(e)}, status=500)
@@ -4188,12 +5950,12 @@ async def get_hf_readme(request):
     try:
         url = request.query.get('url', '')
         if not url or 'huggingface.co' not in url:
-            return web.json_response({'error': 'Valid HuggingFace URL required'}, status=400)
+            return web.json_response({'error': '需要有效的 HuggingFace 链接'}, status=400)
 
         # Extract repo from URL (e.g., https://huggingface.co/owner/repo/...)
         match = re.search(r'huggingface\.co/([^/]+/[^/]+)', url)
         if not match:
-            return web.json_response({'readme': None, 'error': 'Could not parse repo from URL'})
+            return web.json_response({'readme': None, 'error': '无法从链接解析仓库'})
 
         repo_id = match.group(1)
 
@@ -4225,7 +5987,7 @@ async def get_hf_readme(request):
 
                 return web.json_response({'readme': readme_html, 'repo': repo_id})
             else:
-                return web.json_response({'readme': None, 'error': 'README not found'})
+                return web.json_response({'readme': None, 'error': '未找到 README'})
         except requests.exceptions.RequestException as e:
             return web.json_response({'readme': None, 'error': f'Failed to fetch: {str(e)}'})
 
@@ -4314,10 +6076,10 @@ async def get_model_metadata(request):
     try:
         path = request.query.get('path', '')
         if not path:
-            return web.json_response({'error': 'Path is required'}, status=400)
+            return web.json_response({'error': '需要路径'}, status=400)
 
         if not os.path.exists(path):
-            return web.json_response({'error': 'File not found'}, status=404)
+            return web.json_response({'error': '文件不存在'}, status=404)
 
         # Security check - ensure path is within models directories
         models_dir = folder_paths.models_dir
@@ -4336,7 +6098,7 @@ async def get_model_metadata(request):
                     break
 
             if not valid_path:
-                return web.json_response({'error': 'Access denied'}, status=403)
+                return web.json_response({'error': '访问被拒绝'}, status=403)
 
         stat = os.stat(path)
         filename = os.path.basename(path)
@@ -4376,10 +6138,10 @@ async def delete_model(request):
         path = data.get('path', '')
 
         if not path:
-            return web.json_response({'error': 'Path is required'}, status=400)
+            return web.json_response({'error': '需要路径'}, status=400)
 
         if not os.path.exists(path):
-            return web.json_response({'error': 'File not found'}, status=404)
+            return web.json_response({'error': '文件不存在'}, status=404)
 
         # Security check - ensure path is within models directories
         models_dir = folder_paths.models_dir
@@ -4399,11 +6161,11 @@ async def delete_model(request):
                     break
 
         if not valid_path:
-            return web.json_response({'error': 'Access denied - path not in models directory'}, status=403)
+            return web.json_response({'error': '访问被拒绝：路径不在 models 目录内'}, status=403)
 
         # Ensure it's a file, not a directory
         if not os.path.isfile(path):
-            return web.json_response({'error': 'Path is not a file'}, status=400)
+            return web.json_response({'error': '路径不是文件'}, status=400)
 
         # Delete the file
         os.remove(path)
@@ -4583,7 +6345,7 @@ async def fuzzy_match_endpoint(request):
         threshold = data.get('threshold', 0.70)
 
         if not filename:
-            return web.json_response({'error': 'Missing filename'}, status=400)
+            return web.json_response({'error': '缺少文件名'}, status=400)
 
         matches = fuzzy_match_model(filename, threshold)
 
@@ -4646,7 +6408,7 @@ async def analyze_url_endpoint(request):
         url = data.get('url', '').strip()
 
         if not url:
-            return web.json_response({'error': 'Missing URL'}, status=400)
+            return web.json_response({'error': '缺少链接'}, status=400)
 
         filename = None
         size = None
@@ -4814,9 +6576,12 @@ def _download_with_aria2(url, dest_path, download_id, headers=None):
             '--split=4',
             '--min-split-size=1M',
             '--file-allocation=none',
+            # Windows: CRL revocation check is offline on many machines and
+            # aborts every aria2 TLS handshake without this flag
+            '--check-certificate=false',
             '--console-log-level=error',
             '--summary-interval=1',
-            url
+            apply_hf_mirror(url)
         ]
 
         if headers:
@@ -4883,74 +6648,229 @@ def _download_with_aria2(url, dest_path, download_id, headers=None):
             active_download_count = max(0, active_download_count - 1)
 
 
-def _download_native_with_resume(url, dest_path, download_id, headers=None):
-    """Download using requests with resume support (.partial file tracking)"""
-    global active_download_count
+def _resume_download_core(url, dest_path, download_id, headers=None, max_retries=0):
+    """Resume-capable streaming download with automatic retry/backoff.
 
+    - Writes to <dest>.partial, resumes via HTTP Range after interruptions.
+    - Retries recoverable network errors, resuming from the bytes already on
+      disk (this is what makes big models survive flaky connections instead
+      of restarting from zero).
+    - max_retries=0 (default) means UNLIMITED: on a link that drops every few
+      hundred MB a fixed budget just forces the user to restart by hand, and
+      every retry is cheap because the bytes are already there. The only way
+      this gives up is a URL that makes no progress at all (see the guard
+      below) or a non-retryable HTTP status.
+    - Respects cancellation via cancelled_downloads.
+    - HuggingFace URLs are rewritten to the configured mirror when enabled.
+    Returns (success: bool, error: str|None).
+    """
+    url = apply_hf_mirror(url)
     partial_path = dest_path + '.partial'
-    resume_byte = 0
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
 
-    # Check for existing partial download
-    if os.path.exists(partial_path):
-        resume_byte = os.path.getsize(partial_path)
-        logging.info(f"[WMD] Resuming download from byte {resume_byte}")
+    # Seed resume from a truncated final-name file. Old crash-interrupted
+    # downloads left complete-looking-but-short files at dest_path; when the
+    # panel (integrity check) flags them missing and the user re-downloads,
+    # rename the remnant to .partial so Range resume continues it instead of
+    # throwing away e.g. 108MB of a 20.97GB model. Only seed for truncated
+    # files; a corrupt header (shifted/garbage content) is not trustworthy
+    # byte-for-byte prefix, so drop it and start clean.
+    if not os.path.exists(partial_path) and os.path.exists(dest_path):
+        status, expected = verify_safetensors_file(dest_path)
+        if status == 'truncated':
+            try:
+                os.rename(dest_path, partial_path)
+                logging.info(f"[WMD] Seeding resume from truncated file: {partial_path} "
+                             f"({os.path.getsize(partial_path):,} of {expected:,} bytes)")
+            except Exception as e:
+                logging.warning(f"[WMD] Could not seed .partial from truncated file: {e}")
+        elif status == 'corrupt':
+            try:
+                os.remove(dest_path)
+                logging.info(f"[WMD] Removed corrupt file before fresh download: {dest_path}")
+            except Exception as e:
+                logging.warning(f"[WMD] Could not remove corrupt file: {e}")
 
-    req_headers = headers.copy() if headers else {}
-    if resume_byte > 0:
-        req_headers['Range'] = f'bytes={resume_byte}-'
+    attempt = 0
+    last_error = None
+    # Unlimited retries need an escape hatch: a URL that never adds a single
+    # byte to the partial file (dead link, server permanently refusing Range)
+    # would otherwise loop forever. 5 consecutive zero-progress failures after
+    # the startup grace period = hopeless. Any real advance resets the tally,
+    # so a slow-but-alive link is never abandoned.
+    progress_watermark = 0
+    consecutive_stalls = 0
+    startup_grace_until = time.time() + 120.0   # first 2 min get a free pass
 
-    try:
-        response = requests.get(url, stream=True, timeout=30, allow_redirects=True, headers=req_headers)
+    # Unlimited: loop on a condition that is always true; the only exits are
+    # success, cancellation, non-retryable HTTP status, or the zero-progress
+    # stall guard below. (while attempt <= max_retries with max_retries=0
+    # would have meant exactly ONE attempt - the opposite of unlimited.)
+    while True:
+        resume_byte = 0
+        if os.path.exists(partial_path):
+            resume_byte = os.path.getsize(partial_path)
 
-        # Check if server supports resume
-        if resume_byte > 0 and response.status_code != 206:
-            # Server doesn't support resume, start from beginning
-            resume_byte = 0
-            response = requests.get(url, stream=True, timeout=30, allow_redirects=True, headers=headers or {})
-
-        response.raise_for_status()
-
-        total_size = int(response.headers.get('content-length', 0))
-        if resume_byte > 0:
-            total_size += resume_byte  # Add already downloaded bytes
-
+        # get-or-create: this thread may run standalone (direct tests, manual
+        # resume) without a download_model endpoint having registered the id.
+        # A bare subscript would raise KeyError and kill the whole download.
         with download_lock:
-            download_progress[download_id]['total_size'] = total_size
-            download_progress[download_id]['status'] = 'downloading'
-            download_progress[download_id]['method'] = 'native_resume'
+            prog = download_progress.setdefault(download_id, {})
 
-        # Open file in append mode if resuming
-        mode = 'ab' if resume_byte > 0 else 'wb'
-        downloaded = resume_byte
+        req_headers = dict(headers or {})
+        if resume_byte > 0:
+            req_headers['Range'] = f'bytes={resume_byte}-'
+            logging.info(f"[WMD] Attempt {attempt + 1}: resuming {os.path.basename(dest_path)} from byte {resume_byte}")
 
-        with open(partial_path, mode) as f:
-            for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks for faster downloads
-                # Check for cancellation
-                if download_id in cancelled_downloads:
-                    return False, "Cancelled"
+        response = None
+        try:
+            response = requests.get(url, stream=True, timeout=(15, 60), allow_redirects=True, headers=req_headers)
 
-                if chunk:
+            # If resume was rejected, server sent full body from 0 -> restart file
+            if resume_byte > 0 and response.status_code == 200:
+                logging.info("[WMD] Server ignored Range header, restarting from scratch")
+                resume_byte = 0
+                response = requests.get(url, stream=True, timeout=(15, 60), allow_redirects=True, headers=dict(headers or {}))
+
+            if response.status_code in (401, 403):
+                # Auth problems are not retryable
+                return False, f"Unauthorized (HTTP {response.status_code}): this model needs a HuggingFace token with access to the repo (gated model). Configure it in Settings > Workflow Models Downloader."
+            if response.status_code == 404:
+                return False, "Model not found (HTTP 404): The file may have been moved or deleted."
+            response.raise_for_status()
+
+            total_size = int(response.headers.get('content-length', 0))
+            if resume_byte > 0:
+                total_size += resume_byte  # Add already downloaded bytes
+
+            with download_lock:
+                prog['total_size'] = total_size
+                prog['status'] = 'downloading'
+                prog['method'] = 'native_resume'
+                prog.pop('error', None)
+                # track start time + bytes for speed/ETA (per attempt window)
+                prog['attempt_started_at'] = time.time()
+                prog['attempt_start_bytes'] = resume_byte
+
+            mode = 'ab' if resume_byte > 0 else 'wb'
+            downloaded = resume_byte
+            last_speed_update = time.time()
+            last_speed_bytes = resume_byte
+
+            with open(partial_path, mode) as f:
+                # Read from the RAW stream instead of iter_content().
+                #
+                # iter_content() raises IncompleteRead when the CDN drops the
+                # connection mid-transfer, and it DISCARDS the bytes that
+                # were already buffered - so a 10GB file over a flaky link
+                # restarted from the last good point every 60-180MB, over
+                # and over. Reading the raw stream and tolerating a short
+                # read keeps every byte that did arrive: the file grows
+                # continuously and the retry (if any) resumes near where
+                # the connection actually stopped.
+                raw = response.raw
+                while True:
+                    if download_id in cancelled_downloads:
+                        return False, "Cancelled"
+                    try:
+                        chunk = raw.read(1024 * 1024, decode_content=True)
+                    except Exception as e:
+                        # Connection died mid-read. Keep what we have; the
+                        # completeness check below decides whether to retry.
+                        last_error = f"read interrupted: {e}"
+                        logging.warning(
+                            f"[WMD] Read interrupted at {downloaded:,} bytes: {e}")
+                        break
+                    if not chunk:
+                        break
                     f.write(chunk)
                     downloaded += len(chunk)
-                    with download_lock:
-                        download_progress[download_id]['downloaded'] = downloaded
-                        if total_size > 0:
-                            download_progress[download_id]['progress'] = int((downloaded / total_size) * 100)
+                    now = time.time()
+                    # update speed every ~2s to keep polling cheap
+                    if now - last_speed_update >= 2:
+                        speed_bps = (downloaded - last_speed_bytes) / (now - last_speed_update)
+                        with download_lock:
+                            prog['speed_bps'] = int(speed_bps)
+                            el = now - (prog.get('attempt_started_at') or now)
+                            el_bytes = downloaded - (prog.get('attempt_start_bytes') or downloaded)
+                            if el > 0:
+                                prog['avg_speed_bps'] = int(el_bytes / el)
+                            prog['progress'] = min(99, int(downloaded / total_size * 100)) if total_size else prog.get('progress', 0)
+                        last_speed_update, last_speed_bytes = now, downloaded
+                    else:
+                        with download_lock:
+                            prog['downloaded'] = downloaded
+                            if total_size > 0:
+                                prog['progress'] = min(99, int((downloaded / total_size) * 100))
+                try:
+                    f.flush()
+                    os.fsync(f.fileno())
+                except Exception:
+                    pass
 
-        # Rename partial to final
-        if os.path.exists(dest_path):
-            os.remove(dest_path)
-        os.rename(partial_path, dest_path)
+            # Completeness check: stream ended early without raising
+            if total_size > 0 and downloaded < total_size:
+                raise IOError(f"Incomplete: got {downloaded}/{total_size} bytes")
 
-        with download_lock:
-            download_progress[download_id]['status'] = 'completed'
-            download_progress[download_id]['progress'] = 100
+            # Rename partial to final
+            if os.path.exists(dest_path):
+                os.remove(dest_path)
+            os.rename(partial_path, dest_path)
 
-        return True, None
+            with download_lock:
+                prog['status'] = 'completed'
+                prog['progress'] = 100
+            return True, None
 
-    except Exception as e:
-        # Keep partial file for resume
-        return False, str(e)
+        except Exception as e:
+            last_error = str(e)
+            if isinstance(e, requests.exceptions.HTTPError) and e.response is not None and e.response.status_code in (401, 403, 404):
+                return False, last_error
+            attempt += 1
+            is_cancel = 'Cancelled' in (last_error or '')
+            if not is_cancel:
+                snap = os.path.getsize(partial_path) if os.path.exists(partial_path) else 0
+                if snap > progress_watermark:
+                    progress_watermark, consecutive_stalls = snap, 0
+                else:
+                    consecutive_stalls += 1
+                    if consecutive_stalls >= 5 and time.time() > startup_grace_until:
+                        logging.warning(
+                            f"[WMD] {os.path.basename(dest_path)}: {consecutive_stalls} consecutive failures "
+                            f"with zero bytes added (stuck at {snap} B); giving up"
+                        )
+                        return False, f"Download stalled: {last_error} (partial file kept at {snap} bytes)"
+            # max_retries<=0 -> unlimited retries (the working default).
+            if max_retries > 0 and attempt > max_retries:
+                break
+            # A link that keeps moving bytes is alive: retry almost instantly
+            # instead of waiting out a full exponential curve (10 drops on a
+            # 19.5GB file would otherwise burn ~4 minutes just sleeping).
+            if progress_watermark > 0 and consecutive_stalls == 0:
+                backoff = 1
+            else:
+                backoff = min(30, 2 ** attempt)
+            logging.warning(
+                f"[WMD] Download interrupted ({last_error}); retry in {backoff}s "
+                f"(attempt {attempt}{'/' + str(max_retries) if max_retries > 0 else ''}, partial kept for resume)"
+            )
+            time.sleep(backoff)
+        finally:
+            try:
+                if response is not None:
+                    response.close()
+            except Exception:
+                pass
+
+    return False, last_error or "Download failed"
+
+
+def _download_native_with_resume(url, dest_path, download_id, headers=None):
+    """Download using requests with resume support (.partial file tracking).
+    Thin wrapper kept for the queue worker; handles the concurrency counter."""
+    global active_download_count
+    try:
+        return _resume_download_core(url, dest_path, download_id, headers)
     finally:
         with download_queue_lock:
             active_download_count = max(0, active_download_count - 1)
@@ -5028,12 +6948,35 @@ def _process_queued_download(download_info):
                 'queued': False
             }
 
-        # Try aria2 first if available
+        # Prefer aria2 when available (multi-connection), fall back to the
+        # resume engine with unlimited retries. Both write to the same final
+        # path, so a swap between them never loses already-downloaded bytes.
+        # aria2's own --continue=true handles its resume.
         aria2_available = check_aria2_available()
 
         if aria2_available:
             success, error = _download_with_aria2(url, dest_path, download_id, headers)
         else:
+            success, error = _download_native_with_resume(url, dest_path, download_id, headers)
+
+        # aria2 exit != 0 is frequently a transient network drop; the resume
+        # engine's unlimited retry + Range makes it recover without the user.
+        if not success and error != "Cancelled" and aria2_available:
+            partial = dest_path + '.partial'
+            has_partial = os.path.exists(partial) and os.path.getsize(partial) > 0
+            logging.warning(
+                f"[WMD] aria2 failed for {filename} ({error}); retrying with resume engine "
+                f"(partial file: {'yes' if has_partial else 'no'})"
+            )
+            if not has_partial:
+                # aria2 writes the destination directly, so the resume engine
+                # can only continue a file it already produced. If aria2 left
+                # nothing behind, seed the .partial from whatever exists.
+                if os.path.exists(dest_path) and os.path.getsize(dest_path) > 0:
+                    try:
+                        os.rename(dest_path, partial)
+                    except Exception as e:
+                        logging.debug(f"[WMD] Could not seed .partial from aria2 output: {e}")
             success, error = _download_native_with_resume(url, dest_path, download_id, headers)
 
         if not success and error != "Cancelled":
@@ -5094,7 +7037,7 @@ async def queue_download_endpoint(request):
         target_dir = data.get('directory')
 
         if not all([url, filename, target_dir]):
-            return web.json_response({'error': 'Missing required fields'}, status=400)
+            return web.json_response({'error': '缺少必填字段'}, status=400)
 
         # Check if URL is actually a CivitAI URN and convert it
         if is_civitai_urn(url):
@@ -5103,7 +7046,7 @@ async def queue_download_endpoint(request):
                 logging.info(f"[WMD] Converted CivitAI URN to download URL: {url} -> {civitai_url}")
                 url = civitai_url
             else:
-                return web.json_response({'error': 'Invalid CivitAI URN format'}, status=400)
+                return web.json_response({'error': '无效的 CivitAI URN 格式'}, status=400)
 
         # Generate download ID
         download_id = f"queued_{filename}_{int(asyncio.get_event_loop().time() * 1000)}".replace('/', '_').replace('\\', '_')
@@ -5159,7 +7102,7 @@ async def queue_download_endpoint(request):
             'success': True,
             'download_id': download_id,
             'queued': True,
-            'message': f'Added {filename} to download queue'
+            'message': f'已将 {filename} 加入下载队列'
         })
 
     except Exception as e:
@@ -5197,7 +7140,7 @@ async def set_parallel_downloads(request):
 
         # Validate value
         if not isinstance(value, int) or value < 0 or value > 50:
-            return web.json_response({'error': 'Invalid value (must be 0-50)'}, status=400)
+            return web.json_response({'error': '无效取值（须为 0-50）'}, status=400)
 
         max_parallel_downloads = value
 
