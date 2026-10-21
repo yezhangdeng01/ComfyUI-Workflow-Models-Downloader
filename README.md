@@ -3,9 +3,31 @@
 [![ComfyUI Registry](https://img.shields.io/badge/ComfyUI-Registry-green)](https://registry.comfy.org/publishers/slahiri/nodes/comfyui-workflow-models-downloader)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![GitHub stars](https://img.shields.io/github/stars/slahiri/ComfyUI-Workflow-Models-Downloader.svg)](https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/yezhangdeng01/ComfyUI-Workflow-Models-Downloader.svg)](https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader/stargazers)
 
 A powerful ComfyUI extension that automatically detects models in your workflow and helps download missing ones from HuggingFace, CivitAI, and other sources.
+
+## About this fork
+
+This repository is a **fork of [slahiri/ComfyUI-Workflow-Models-Downloader](https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader)** (MIT licensed), maintained at
+**https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader**.
+
+What this fork changes:
+
+- **Faster workflow scanning** - scanning is fully local, so the model table appears instantly
+- **Reliable downloads** - interrupted downloads resume from the exact byte, and the target folder is the one the loading node actually reads from
+- **Verified source resolution** - the best-verified link is picked automatically and shown with its evidence
+- **High-DPI canvas fix** - repairs the node/grid misalignment that appears when the browser's effective devicePixelRatio is greater than 1
+
+The ComfyUI Registry listing still points at the original publisher (`slahiri`), so installing from the Registry gives the upstream `1.8.1`. **Install from this repository** to get the fixes:
+
+```bash
+cd ComfyUI/custom_nodes
+git clone https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader.git
+pip install -r ComfyUI-Workflow-Models-Downloader/requirements.txt
+```
+
+Upstream contributions remain welcome; see `CHANGELOG.md` for the full list of changes.
 
 ## Screenshots
 
@@ -95,13 +117,16 @@ Built-in FAQ and troubleshooting guide covering API key setup, common errors, an
 
 ## Installation
 
-### Via ComfyUI Registry (Recommended)
+### Via ComfyUI Registry
 Search for "Workflow Models Downloader" in ComfyUI Manager and click Install.
+
+> **Note:** the Registry listing is published by the original author (`slahiri`) and serves version `1.8.1`.
+> To get this fork's fixes, use the manual installation below.
 
 ### Manual Installation
 ```bash
 cd ComfyUI/custom_nodes
-git clone https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader.git
+git clone https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader.git
 pip install -r ComfyUI-Workflow-Models-Downloader/requirements.txt
 ```
 

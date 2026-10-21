@@ -13,11 +13,13 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader"
-Documentation = "https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader#readme"
-"Bug Tracker" = "https://github.com/slahiri/ComfyUI-Workflow-Models-Downloader/issues"
+Repository = "https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader"
+Documentation = "https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader#readme"
+"Bug Tracker" = "https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader/issues"
 
 [tool.comfy]
+# NOTE: PublisherId 属于原发布者 slahiri 的 comfy.org 账号，无法在此更改。
+# 本 fork 的实际代码与发布地址为 https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader
 PublisherId = "slahiri"
 DisplayName = "Workflow Models Downloader"
-Icon = "https://raw.githubusercontent.com/slahiri/ComfyUI-Workflow-Models-Downloader/main/images/workflow-models-tab.png"
+Icon = "https://raw.githubusercontent.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader/main/images/workflow-models-tab.png"

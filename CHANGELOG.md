@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Fixes
+- Fixed node/grid misalignment on high-DPI displays - `comfyui-mixlab-nodes` overrides `LGraphCanvas.drawBackCanvas` and detects the device pixel ratio by grepping the minified frontend source for `window.devicePixelRatio`; that literal no longer exists, so the background grid was permanently drawn at scale 1 while nodes rendered at the real DPR. A bundled web extension now keeps both canvases on the same ratio and follows live browser-zoom changes
+
 ## 1.9.0 - 2026-10-21
 
 ### Features
