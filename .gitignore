@@ -44,3 +44,10 @@ venv/
 
 # Internal development progress notes (local only)
 docs/
+
+# runtime caches
+download_history.json
+model_metadata.json
+usage_cache.json
+hf_candidate_cache.json
+wmd.log
