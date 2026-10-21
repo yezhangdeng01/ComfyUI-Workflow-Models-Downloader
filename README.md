@@ -8,7 +8,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![GitHub stars](https://img.shields.io/github/stars/yezhangdeng01/ComfyUI-Workflow-Models-Downloader.svg)](https://github.com/yezhangdeng01/ComfyUI-Workflow-Models-Downloader/stargazers)
 
-自动扫描工作流里引用的模型，从 HuggingFace、CivitAI 等来源解析出可用下载地址，并把缺失的模型下载到 ComfyUI 真正会去读的目录里。
+自动扫描工作流里引用的模型，从 **HuggingFace、ModelScope（魔搭）、CivitAI** 等来源解析出可用下载地址，实测测速选出最快的源，并把缺失的模型下载到 ComfyUI 真正会去读的目录里。
 
 **界面为中文，定位是上游节点的中文优化版。**
 
@@ -64,6 +64,42 @@
 | **正确的目标目录** | 模型被保存到**加载节点实际读取的 ComfyUI 目录**（如 `diffusion_models/`、`text_encoders/`），不是拍脑袋猜的分类 |
 
 实测：9.75GB 的 qwen 模型从 61% 平滑续传到 100%，最终字节数与 safetensors header 推导值完全一致。
+
+### 网络适应：多源测速选优 + 镜像 + 加速
+
+针对国内网络环境，插件内置了三层应对策略：
+
+#### 1. ModelScope（魔搭）作为长期通用选优源
+
+不是为某个工作流临时加的，而是做成了**通用架构**——魔搭是常驻的第二选源：
+
+- **优先级顺序**：内置精选源表（`KNOWN_GOOD_SOURCES`）→ 魔搭 → HuggingFace / CivitAI
+- **命中规则**（按优先级）：精选源表里显式写的 `modelscope_repo` → 按模型名/目录命中的仓库提示表（`Comfy-Org/MiniMax-H3`、`Comfy-Org`、`Wan-AI`、`qwen`、`Comfy-Org/flux`、`Comfy-Org/stable-diffusion-3`、`Comfy-Org/stable-diffusion-xl`）→ 兜底整个 `Comfy-Org` 命名空间
+- **只接受精确文件名匹配**（`basename` 全等），不猜相似名——这是修复上游"模糊匹配把 `taeh3` 错配到 FLUX 私有库导致 401 死循环"的核心约束
+- **目录映射覆盖 23 种**：`diffusion_models`、`text_encoders`、`vae`、`loras`、`controlnet`、`clip_vision`、`embeddings`、`upscale_models`、`animatediff_models`、`ipadapter`、`instantid`、`pulid`、`sams`、`model_patches` 等
+- **实测**：魔搭上有若干模型 HuggingFace 根本没有（只有魔搭能提供）；对同一模型魔搭实测 **2.13 MB/s vs HF**，测速后自动选中魔搭
+
+#### 2. HuggingFace 镜像
+
+- **设置项**：ComfyUI → 设置 → 工作流模型管理 → 启用镜像 / 镜像域名（默认 `hf-mirror.com`）
+- **优先级**：插件设置 > 环境变量 `HF_ENDPOINT` / `HF_MIRROR` / `HF_HUB_ENDPOINT` > 直连
+- 绘世/Aki 启动器虽然能注入 `HF_ENDPOINT`，但本插件之前不读它——现在读了
+- 镜像同时作用于 **HF API 搜索**和**实际下载**，存储的仍是规范 URL
+- ⚠️ Windows 上 `curl` 直连镜像可能报 `CRYPT_E_REVOCATION_OFFLINE`（证书吊销检查离线），这是 Windows schannel 的问题不是镜像挂了；插件用 Python `requests` 不受影响，aria2 走 `--check-certificate=false`
+
+#### 3. aria2 多线程加速
+
+- 检测到 `aria2c` 即自动启用（`shutil.which`），未安装则回落到 Python 下载
+- 参数：`--continue=true`（续传）、`--max-connection-per-server=4`、`--split=4`、`--min-split-size=1M`、`--file-allocation=none`
+- **`--check-certificate=false` 是必需的**：不加会因 Windows 证书吊销检查离线导致每次 TLS 握手失败
+- 下载面板实时显示**速度**（MB/s）与**剩余时间**
+
+#### 4. 真实测速选优
+
+不是"哪个源先返回就用哪个"，而是**真的拉一段数据测速**：
+
+- 每个候选源实际下载 1MB 计时，按速度降序排列
+- 候选全部失败时返回"无精确匹配"，并给出**同族推荐列表**（token 重叠匹配，忽略量化词/包装词，排序 = 相似度 → 覆盖度 → **体积接近度**）
 
 ### 高分屏画布错位修复
 
@@ -170,11 +206,17 @@ pip install -r ComfyUI-Workflow-Models-Downloader/requirements.txt
 
 在 **设置** 页签（ComfyUI 菜单 → 设置 → 工作流模型管理）中配置：
 
-| 密钥 | 用途 | 获取地址 |
+| 设置项 | 用途 | 说明 |
 |---|---|---|
 | **HuggingFace 令牌** | 下载门控模型（Flux、SD3 等）**必需** | [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) |
 | **CivitAI API 密钥** | 下载 CivitAI 模型**必需** | [civitai.com/user/account](https://civitai.com/user/account) |
 | **Tavily API 密钥** | 可选，开启 AI 高级搜索 | [tavily.com](https://tavily.com) |
+| **启用镜像** | 可选，大陆网络直连 HF 不稳时开启 | 改写 HF API 与下载请求到镜像域名 |
+| **镜像域名** | 镜像地址 | 默认 `hf-mirror.com` |
+| **最大并行下载数** | 同时下载几个模型 | 默认 8 |
+| **启用高级搜索** | 开启 Tavily 搜索 | 默认开启 |
+
+> 插件的 7 个设置项都注册在 ComfyUI **原生设置面板**里，分类为「工作流模型管理」，重启 ComfyUI 后生效。
 
 ---
 

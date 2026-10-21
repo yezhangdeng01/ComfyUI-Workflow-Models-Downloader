@@ -7,6 +7,8 @@ All notable changes to this project are documented in this file.
 ### Improvements
 - README rewritten in Chinese - documents the two fatal problems of the upstream release (models that could not be found, downloads that could not resume), lists every improvement of this fork with measured numbers, and states the ongoing-maintenance commitment
 - Positioning is now explicit: a Chinese-optimized fork of the upstream node. UI, prompts and help docs are all in Chinese
+- README gained a "network resilience" section documenting the ModelScope source architecture, the HF mirror priority chain, the aria2 flags and the real throughput-probe selection
+- README settings table now lists all 7 native ComfyUI settings entries
 
 ### Fixes
 - Fixed node/grid misalignment on high-DPI displays - `comfyui-mixlab-nodes` overrides `LGraphCanvas.drawBackCanvas` and detects the device pixel ratio by grepping the minified frontend source for `window.devicePixelRatio`; that literal no longer exists, so the background grid was permanently drawn at scale 1 while nodes rendered at the real DPR. A bundled web extension now keeps both canvases on the same ratio and follows live browser-zoom changes
