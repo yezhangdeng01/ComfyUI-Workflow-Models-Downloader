@@ -2224,6 +2224,46 @@ NODE_TYPE_DIRECTORIES = {
     'InsightFaceLoader': 'insightface/models',
     'SAMLoader': 'sams',
     'UltralyticsDetectorProvider': 'ultralytics',
+    # sdpose-ood registers its own "yolo" folder (models/yolo, .pt only).
+    'YOLOModelLoader': 'yolo',
+    'YoloModelLoader': 'yolo',
+}
+
+# Human-readable type label per loader node. The badge in the panel is derived
+# from the filename pattern first, but patterns are heuristics: a Chinese-named
+# LoRA ("Qwen21-换头一致1.0.safetensors") matches no pattern and lands on the
+# ".safetensors -> Checkpoint" default, and "qwen_image_2.1_vae_bf16" hits the
+# Qwen text-encoder pattern while a VAELoader is what actually reads it. The
+# loader node is ground truth, so the label follows the node whenever the node
+# proved a different folder (or the pattern only produced a generic default).
+NODE_TYPE_MODEL_LABELS = {
+    'LoraLoader': 'LoRA',
+    'LoraLoaderModelOnly': 'LoRA',
+    'VAELoader': 'VAE',
+    'UNETLoader': 'Diffusion Model',
+    'UnetLoaderGGUF': 'Diffusion Model',
+    'CLIPLoader': 'Text Encoder',
+    'CLIPLoaderGGUF': 'Text Encoder',
+    'DualCLIPLoader': 'Text Encoder',
+    'TripleCLIPLoader': 'Text Encoder',
+    'QuadrupleCLIPLoader': 'Text Encoder',
+    'CLIPVisionLoader': 'CLIP Vision',
+    'ControlNetLoader': 'ControlNet',
+    'DiffControlNetLoader': 'ControlNet',
+    'UpscaleModelLoader': 'Upscaler',
+    'CheckpointLoaderSimple': 'Checkpoint',
+    'CheckpointLoader': 'Checkpoint',
+    'unCLIPCheckpointLoader': 'Checkpoint',
+    'ImageOnlyCheckpointLoader': 'Checkpoint',
+    'StyleModelLoader': 'Style Model',
+    'HypernetworkLoader': 'Hypernetwork',
+    'GLIGENLoader': 'GLIGEN',
+    'IPAdapterModelLoader': 'IP-Adapter',
+    'InsightFaceLoader': 'InsightFace',
+    'SAMLoader': 'SAM',
+    'UltralyticsDetectorProvider': 'YOLO Model',
+    'YOLOModelLoader': 'YOLO Model',
+    'YoloModelLoader': 'YOLO Model',
 }
 
 URL_DIRECTORY_HINTS = {
@@ -2632,7 +2672,24 @@ def authoritative_folder_for(filename, node_type):
     return fallback
 
 
-_BASENAME_INDEX = {'built_at': 0.0, 'map': {}}
+_BASENAME_INDEX = {'built_at': 0.0, 'map': {}, 'norm': {}}
+
+
+def _normalize_model_name(name):
+    """Filename -> lowercase alphanumerics only (CJK kept), extension kept.
+
+    "Qwen- image-2.1_int8_convrot.safetensors" and
+    "qwen_image_2.1_int8_convrot.safetensors" collapse to the same key. That is
+    the difference between "the node shows an empty model field" and "it loads":
+    combo widgets compare the EXACT relative path, so a file saved with a stray
+    space / dash / different case is invisible to both ComfyUI and the scan even
+    though it sits in the right folder at the right size.
+    """
+    out = []
+    for ch in (name or '').lower():
+        if ch.isalnum():
+            out.append(ch)
+    return ''.join(out)
 
 
 def verify_safetensors_file(path):
@@ -2715,8 +2772,88 @@ def _find_file_by_basename(filename):
                     key = f.lower()
                     if key not in index or len(os.path.join(root, f)) < len(index[key]):
                         index[key] = os.path.join(root, f)
-        idx['map'], idx['built_at'] = index, now
+        # Second map keyed by _normalize_model_name so "Qwen- image-…" and
+        # "qwen_image-…" find each other (see find_local_name_variants).
+        # A LIST per key: the same model can be sitting in several folders
+        # (a copy in diffusion_models plus a stray one elsewhere), and the
+        # caller wants to pick the copy in the folder the node actually reads.
+        norm = {}
+        for key, p in index.items():
+            nk = _normalize_model_name(key)
+            if nk:
+                norm.setdefault(nk, []).append(p)
+        idx['map'], idx['norm'], idx['built_at'] = index, norm, now
     return idx['map'].get(base.lower())
+
+
+def _folder_and_relpath(path):
+    """Absolute model path -> (folder_type, relative filename as the combo lists)."""
+    try:
+        items = list(folder_paths.folder_names_and_paths.items())
+    except Exception:
+        return '', ''
+    ap = os.path.abspath(path)
+    best = ('', '')
+    for fname, entry in items:
+        for d in entry[0]:
+            try:
+                ad = os.path.abspath(d)
+            except Exception:
+                continue
+            if ap.lower().startswith(ad.lower() + os.sep):
+                rel = os.path.relpath(ap, ad).replace('\\', '/')
+                if not best[1] or len(rel) < len(best[1]):
+                    best = (fname, rel)
+    return best
+
+
+def find_local_name_variants(filename, prefer_dir=''):
+    """Same model, slightly different filename, already on disk.
+
+    ComfyUI's combo widget compares the EXACT relative path, so a file saved as
+    "Qwen- image-2.1_int8_convrot.safetensors" is invisible to a workflow that
+    asks for "qwen_image_2.1_int8_convrot.safetensors" - the node shows an empty
+    model field and the scan says "missing", even though the bytes are right
+    there (identical size). Comparing normalized names finds those files.
+
+    Returns [{'filename','directory','path','size','size_bytes','same_dir'}]
+    (max 2) when a local file normalizes to the same key as `filename`;
+    files inside `prefer_dir` come first.
+    """
+    base = os.path.basename(filename or '')
+    target = _normalize_model_name(base)
+    if len(target) < 8:
+        return []
+    if time.time() - _BASENAME_INDEX['built_at'] > 10.0 or not _BASENAME_INDEX.get('norm'):
+        _find_file_by_basename(base)  # rebuilds both maps in one walk
+    raw = _BASENAME_INDEX.get('norm', {}).get(target) or []
+    if isinstance(raw, str):  # defensive: older cache shape
+        raw = [raw]
+
+    out = []
+    for path in raw:
+        if os.path.basename(path).lower() == base.lower():
+            continue  # that is the file itself, not a variant
+        folder, rel = _folder_and_relpath(path)
+        if not rel:
+            continue
+        try:
+            size_bytes = os.path.getsize(path)
+        except Exception:
+            size_bytes = 0
+        out.append({
+            'filename': rel,
+            'directory': folder,
+            'path': path,
+            'size': format_size(size_bytes) if size_bytes else '',
+            'size_bytes': size_bytes,
+            'same_dir': bool(prefer_dir) and folder == prefer_dir,
+        })
+
+    # The copy in the node's own folder is the one that will load; a copy
+    # elsewhere still works after a re-point but is second choice.
+    out.sort(key=lambda v: (not v['same_dir'], -v['size_bytes']))
+    return out[:2]
 
 
 def check_model_exists(target_dir, filename):
@@ -2998,6 +3135,7 @@ def scan_workflow_for_models(workflow_json):
 
         # Get model type and directory from filename patterns
         model_type, target_dir = identify_model_type_from_filename(model)
+        pattern_dir = target_dir  # keep the heuristic guess for the type check below
 
         if model_type is None:
             continue  # Skip unknown types
@@ -3044,10 +3182,36 @@ def scan_workflow_for_models(workflow_json):
                 # rules. Runs before the exists-check below so that the scan and
                 # the download thread agree on where this file belongs.
                 hinted = resolve_model_directory(model)
-            if not target_dir or target_dir in ('', 'checkpoints', 'models'):
+            if nt_dir:
+                # The loader node's folder is where ComfyUI itself looks, so it
+                # beats a filename-pattern guess whenever the two disagree: the
+                # "qwen.*bf16" text-encoder pattern matched
+                # qwen_image_2.1_vae_bf16 / qwen_image_2.1_bf16.safetensors even
+                # though a VAELoader / UNETLoader reads them from vae/ and
+                # diffusion_models/. Getting this wrong made the scan report a
+                # phantom "missing" for a file that was already on disk.
+                if target_dir and target_dir != nt_dir:
+                    logging.info(
+                        f"[WMD] {model}: node {probe_node_type} loads from "
+                        f"'{nt_dir}'; overriding pattern directory '{target_dir}'")
+                target_dir = nt_dir
+            elif not target_dir or target_dir in ('', 'checkpoints', 'models'):
                 # An unqualified guess (or the checkpoints fallback from a
                 # generic extension match) loses to a positive hint.
-                target_dir = nt_dir or hinted
+                target_dir = hinted
+
+        # The type badge must follow the FINAL directory. Filename patterns are
+        # heuristics (see NODE_TYPE_MODEL_LABELS): Chinese-named LoRAs fall
+        # through to "Checkpoint" and qwen VAEs matched the text-encoder rule,
+        # so whenever the node proved a different folder - or the pattern only
+        # produced a generic default - the node's own label wins.
+        node_label = NODE_TYPE_MODEL_LABELS.get(probe_node_type, '')
+        if node_label and (target_dir != pattern_dir or model_type in ('Checkpoint', 'Model')):
+            if model_type != node_label:
+                logging.info(
+                    f"[WMD] {model}: type '{model_type}' -> '{node_label}' "
+                    f"(node {probe_node_type})")
+            model_type = node_label
 
         # Check for cached search metadata first
         cached_metadata = get_cached_metadata(model)
@@ -3099,6 +3263,18 @@ def scan_workflow_for_models(workflow_json):
         if not exists:
             alternatives = find_model_alternatives(model, target_dir)
 
+        # Same model, different filename, already on disk (case / space / dash
+        # differences). ComfyUI's combo matches the exact relative path, so such
+        # a file is invisible to both the node and the scan - the user sees
+        # "missing" for a model they already have. Surfaced so the panel can
+        # offer a one-click re-point instead of a re-download.
+        local_variant = []
+        if not exists:
+            try:
+                local_variant = find_local_name_variants(model, target_dir)
+            except Exception as e:
+                logging.debug(f"[WMD] name-variant lookup failed for {model}: {e}")
+
         # List every exact-name download mirror. The panel shows these so the
         # user can choose which one to fetch - the plugin never downloads
         # without an explicit click. Only looked up for models that are
@@ -3110,6 +3286,35 @@ def scan_workflow_for_models(workflow_json):
         # /workflow-models/resolve-source, so the table appears instantly.
         mirrors = []
         needs_resolve = (not exists) and (not url)
+
+        # Size of the model, so the table can answer "do I even want this?"
+        # before a 20 GB download starts.
+        #   on disk        -> the safetensors header's declared size (right even
+        #                     for a truncated file) or the real file size
+        #   not on disk    -> whatever is already cached locally, plus the
+        #                     curated table. NO network here: the frontend asks
+        #                     /workflow-models/remote-sizes for the rest, in
+        #                     parallel, right after the table is painted.
+        size_bytes = 0
+        if expected_bytes:
+            size_bytes = int(expected_bytes)
+        elif exists or incomplete:
+            actual = _find_file_by_basename(model)
+            try:
+                size_bytes = os.path.getsize(actual) if actual else 0
+            except Exception:
+                size_bytes = 0
+        if not size_bytes:
+            try:
+                size_bytes = int(_expected_model_size(model) or 0)
+            except Exception:
+                size_bytes = 0
+        if not size_bytes:
+            try:
+                kg = lookup_known_good_source(model) or {}
+                size_bytes = int(kg.get('size') or 0)
+            except Exception:
+                size_bytes = 0
 
         models_data.append({
             'filename': model,
@@ -3126,6 +3331,11 @@ def scan_workflow_for_models(workflow_json):
             'incomplete': incomplete,
             'expected_size': expected_bytes,
             'local_size': local_size or '',
+            # bytes + pre-formatted string for the 大小 column; size_estimated
+            # marks a remote size the user should read as "about".
+            'size_bytes': size_bytes,
+            'size_str': format_size(size_bytes) if size_bytes else '',
+            'size_estimated': bool(size_bytes and not (exists or incomplete)),
             'source': source,
             'url': url,
             'hf_repo': hf_repo or '',
@@ -3134,6 +3344,11 @@ def scan_workflow_for_models(workflow_json):
             'url_source': url_source or ('workflow' if url else None),
             'search_metadata': cached_metadata,
             'alternatives': alternatives,
+            # Files on disk whose name normalizes to the same model, e.g.
+            # "Qwen- image-2.1_int8_convrot.safetensors" for a workflow asking
+            # "qwen_image_2.1_int8_convrot.safetensors". ComfyUI's combo needs
+            # the exact string, so the panel offers a one-click re-point.
+            'local_variants': local_variant,
             # True when this row still needs a source lookup (the frontend
             # fires resolve-source for it, in the background)
             'needs_resolve': needs_resolve,
@@ -3168,7 +3383,71 @@ def scan_workflow_for_models(workflow_json):
                 'directory': target_dir
             })
 
+    models_data = _drop_satisfied_ghost_rows(models_data)
     return models_data
+
+
+def _drop_satisfied_ghost_rows(models_data):
+    """Remove "missing" rows that the workflow no longer actually needs.
+
+    After a re-point (the panel switches a node from `qwen_image_2.1_int8_…` to
+    the local `Qwen- image-2.1_int8_…`), the OLD filename survives in the JSON
+    twice: inside the node's recorded download URL and inside the raw text. The
+    regex sweep picks it up again, so the table would show a fresh "缺失" row
+    right after the user fixed it - looking like the fix did nothing.
+
+    A row is dropped only when ALL of these hold, which makes false positives
+    practically impossible:
+      * it is missing (not on disk),
+      * NO node references it (node_type empty - so no loader would fail),
+      * another row already reports an existing file that satisfies it, i.e.
+        the same normalized name, one of its local name-variants, or one of its
+        alternatives is on disk.
+    """
+    existing = [m for m in models_data if m.get('exists')]
+    if not existing:
+        return models_data
+    existing_names = {os.path.basename(m.get('filename') or '').lower() for m in existing}
+    existing_norm = {_normalize_model_name(os.path.basename(m.get('filename') or ''))
+                     for m in existing}
+    existing_stems = [os.path.splitext(os.path.basename(m.get('filename') or '').lower())[0]
+                      for m in existing]
+
+    def _stem_family(a, b):
+        """Same model family: "x_vae_bf16" vs "x_vae_bf16_v1" (substring rule).
+
+        Mirrors find_model_alternatives, which is how a user reads these names:
+        the shorter stem inside the longer one. The 8-char floor keeps short
+        generic names from swallowing each other.
+        """
+        if not a or not b:
+            return False
+        short, long = (a, b) if len(a) <= len(b) else (b, a)
+        return len(short) >= 8 and short in long
+
+    kept = []
+    for m in models_data:
+        if m.get('exists') or m.get('node_type'):
+            kept.append(m)
+            continue
+        base = os.path.basename(m.get('filename') or '')
+        norm = _normalize_model_name(base)
+        stem = os.path.splitext(base.lower())[0]
+        candidates = [os.path.basename(v.get('filename') or '').lower()
+                      for v in (m.get('local_variants') or [])]
+        candidates += [os.path.basename(a.get('filename') or '').lower()
+                       for a in (m.get('alternatives') or [])]
+        satisfied = (norm in existing_norm) or any(c in existing_names for c in candidates if c)
+        if not satisfied:
+            satisfied = any(_stem_family(stem, other) for other in existing_stems)
+        if satisfied:
+            logging.info(
+                f"[WMD] Dropped ghost row {base}: no node uses it any more and the "
+                f"same model is already on disk under another name"
+            )
+            continue
+        kept.append(m)
+    return kept
 
 
 # =============================================================================
@@ -3265,13 +3544,18 @@ async def resolve_source(request):
             })
 
         def _pack(m):
+            # score_candidates records the HEAD-probed size as `remote_size`;
+            # only the size listed by the source API (if any) is in `size`.
+            # Reporting just `size` left the 大小 column empty for every
+            # source that only answered a HEAD request.
+            nbytes = m.get('remote_size') or m.get('size') or 0
             return {
                 'url': m.get('url', ''),
                 'repo': m.get('repo', ''),
                 'path': m.get('path', ''),
                 'directory': m.get('directory', ''),
-                'size': m.get('size', 0),
-                'size_str': format_size(m.get('size', 0)) if m.get('size') else '',
+                'size': nbytes,
+                'size_str': format_size(nbytes) if nbytes else '',
                 'source': m.get('source', ''),
                 'likes': m.get('likes', 0),
                 'downloads': m.get('downloads', 0),
@@ -3293,6 +3577,138 @@ async def resolve_source(request):
         })
     except Exception as e:
         logging.error(f"[WMD] resolve-source error: {e}")
+        return web.json_response({'error': str(e)}, status=500)
+
+
+# filename(lower) -> bytes. A HEAD probe costs one round trip; the panel asks
+# once per scan and the answer never changes for a given file.
+_REMOTE_SIZE_CACHE = {}
+
+
+@routes.post("/workflow-models/remote-sizes")
+async def remote_sizes(request):
+    """Size of models that are NOT on disk yet, so the table can show it.
+
+    Body: {items: [{filename, url}, ...]}
+    Returns: {success, sizes: {filename: bytes}, size_str: {filename: "7.26 GB"}}
+
+    One HEAD (or 1-byte Range) request per item, all in parallel, off the
+    event loop. Results are cached in-process AND written back into
+    model_metadata.json, so the next scan paints sizes without any network.
+    """
+    try:
+        data = await request.json()
+        items = data.get('items') or []
+        if not isinstance(items, list):
+            items = []
+
+        loop = asyncio.get_event_loop()
+        pairs = []
+        seen = set()
+        for it in items[:40]:
+            if not isinstance(it, dict):
+                continue
+            fn = (it.get('filename') or '').strip()
+            url = (it.get('url') or '').strip()
+            if not fn or not url or fn.lower() in seen:
+                continue
+            seen.add(fn.lower())
+            pairs.append((fn, url))
+
+        async def _one(fn, url):
+            cached = _REMOTE_SIZE_CACHE.get(fn.lower())
+            if cached:
+                return fn, cached
+            try:
+                size = await loop.run_in_executor(None, _hf_remote_size, url)
+            except Exception:
+                size = None
+            if size:
+                _REMOTE_SIZE_CACHE[fn.lower()] = int(size)
+            return fn, int(size) if size else 0
+
+        results = await asyncio.gather(*[_one(f, u) for f, u in pairs],
+                                       return_exceptions=True)
+
+        sizes, strs = {}, {}
+        for r in results:
+            if not isinstance(r, tuple) or len(r) != 2:
+                continue
+            fn, size = r
+            if size:
+                sizes[fn] = size
+                strs[fn] = format_size(size)
+
+        # Persist so a re-scan costs nothing. A pure cache write: the URL the
+        # user may have edited by hand is never touched.
+        for fn, size in sizes.items():
+            try:
+                save_search_metadata(fn, {'size': size})
+            except Exception as e:
+                logging.debug(f"[WMD] could not cache size for {fn}: {e}")
+
+        return web.json_response({'success': True, 'sizes': sizes, 'size_str': strs})
+    except Exception as e:
+        logging.error(f"[WMD] remote-sizes error: {e}")
+        return web.json_response({'error': str(e)}, status=500)
+
+
+@routes.post("/workflow-models/rename-variant")
+async def rename_variant(request):
+    """Rename a local file onto the exact name a workflow asks for.
+
+    Body: {path: <absolute local file>, target_filename: <what the workflow wants>}
+
+    ComfyUI's model combo compares the exact relative path, so
+    "Qwen- image-2.1_int8_convrot.safetensors" and
+    "qwen_image_2.1_int8_convrot.safetensors" are two different models even
+    with identical bytes: the node shows an empty field and the workflow can
+    never load. Renaming inside the same folder fixes the node AND the scan in
+    one step, with no data copied.
+
+    Refuses unless both names normalize to the same model, the target does not
+    already exist, and the file lives inside ComfyUI's models tree.
+    """
+    try:
+        data = await request.json()
+        src = (data.get('path') or '').strip()
+        target_name = os.path.basename((data.get('target_filename') or '').strip())
+        if not src or not target_name:
+            return web.json_response({'error': '参数不完整'}, status=400)
+        if not os.path.isfile(src):
+            return web.json_response({'error': '源文件不存在'}, status=404)
+        src = os.path.abspath(src)
+
+        allowed_roots = [os.path.abspath(folder_paths.models_dir)]
+        try:
+            for e in folder_paths.folder_names_and_paths.values():
+                allowed_roots.extend(os.path.abspath(d) for d in e[0])
+        except Exception:
+            pass
+        if not any(src.startswith(root + os.sep) or src == root for root in allowed_roots):
+            return web.json_response({'error': '访问被拒绝：文件不在 models 目录内'}, status=403)
+
+        # Safety: only a name-only difference of the SAME model may be renamed.
+        if _normalize_model_name(os.path.basename(src)) != _normalize_model_name(target_name):
+            return web.json_response({'error': '两个文件名不是同一个模型，拒绝重命名'}, status=400)
+
+        dest = os.path.join(os.path.dirname(src), target_name)
+        if os.path.abspath(dest) == src:
+            return web.json_response({'success': True, 'path': src, 'renamed': False})
+        if os.path.exists(dest):
+            return web.json_response({'error': f'目标文件已存在：{target_name}'}, status=409)
+
+        os.rename(src, dest)
+        logging.info(f"[WMD] Renamed {src} -> {dest}")
+
+        # Make ComfyUI and the scan see the new name immediately.
+        folder, _rel = _folder_and_relpath(dest)
+        if folder:
+            invalidate_folder_cache(folder)
+        _BASENAME_INDEX['built_at'] = 0.0
+        return web.json_response({'success': True, 'path': dest, 'renamed': True})
+    except Exception as e:
+        logging.error(f"[WMD] rename-variant failed: {e}")
         return web.json_response({'error': str(e)}, status=500)
 
 
@@ -4700,15 +5116,30 @@ def _win_open_in_explorer(path):
 async def open_folder(request):
     """Open the model's folder in the OS file manager, selecting the file.
 
+    Accepts a file OR a directory. A model that is not downloaded yet has no
+    file to select, so the caller passes its target path and we reveal the
+    closest existing parent - "where should this land" is exactly what the user
+    wants to look at while deciding whether to download.
+
     Restricted to paths inside ComfyUI's models tree (same guard style as
     delete_model) so the endpoint can't be used to reveal arbitrary files.
     """
     try:
         data = await request.json()
         path = data.get('path', '')
-        if not path or not os.path.exists(path):
-            return web.json_response({'error': '路径不存在'}, status=404)
+        if not path:
+            return web.json_response({'error': '路径不存在'}, status=400)
         path = os.path.abspath(path)
+
+        target = path
+        if not os.path.exists(target):
+            # Missing file: walk up to the nearest folder that does exist.
+            parent = os.path.dirname(target)
+            while parent and not os.path.exists(parent) and os.path.dirname(parent) != parent:
+                parent = os.path.dirname(parent)
+            if not parent or not os.path.exists(parent):
+                return web.json_response({'error': '路径不存在'}, status=404)
+            target = parent
 
         allowed_roots = [os.path.abspath(folder_paths.models_dir)]
         try:
@@ -4716,19 +5147,23 @@ async def open_folder(request):
                 allowed_roots.extend(os.path.abspath(d) for d in e[0])
         except Exception:
             pass
-        if not any(path.startswith(root + os.sep) or path == root for root in allowed_roots):
+        if not any(target.startswith(root + os.sep) or target == root for root in allowed_roots):
             return web.json_response({'error': '访问被拒绝：路径不在 models 目录内'}, status=403)
 
+        is_dir = os.path.isdir(target)
         if os.name == 'nt':
-            if not _win_open_in_explorer(path):
+            if not _win_open_in_explorer(target):
                 # Fallback: classic explorer /select (known to only blink the
                 # taskbar icon under Windows 11 foreground-lock)
-                subprocess.Popen(['explorer', '/select,', path.replace('/', '\\')])
+                if is_dir:
+                    subprocess.Popen(['explorer', target.replace('/', '\\')])
+                else:
+                    subprocess.Popen(['explorer', '/select,', target.replace('/', '\\')])
         elif sys.platform == 'darwin':
-            subprocess.Popen(['open', '-R', path])
+            subprocess.Popen(['open', '-R', target] if not is_dir else ['open', target])
         else:
-            subprocess.Popen(['xdg-open', os.path.dirname(path)])
-        return web.json_response({'ok': True, 'path': path})
+            subprocess.Popen(['xdg-open', target if is_dir else os.path.dirname(target)])
+        return web.json_response({'ok': True, 'path': target, 'is_dir': is_dir})
     except Exception as e:
         logging.error(f"[WMD] open-folder failed: {e}")
         return web.json_response({'error': str(e)}, status=500)

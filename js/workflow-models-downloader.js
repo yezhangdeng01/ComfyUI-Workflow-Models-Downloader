@@ -551,6 +551,43 @@ const styles = `
     color: #ddd;
 }
 
+/* "same model, different filename" chip: clickable, sits next to 缺失 */
+.wmd-variant-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 8px;
+    background-color: #1E88E5;
+    color: #fff;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.wmd-variant-badge:hover {
+    background-color: #1565C0;
+}
+
+/* 大小 column: local size is plain, a remote guess is muted and prefixed ≈ */
+.wmd-size-cell {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.wmd-size-local {
+    color: inherit;
+}
+
+.wmd-size-remote {
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.wmd-size-pending {
+    color: #9ca3af;
+}
+
 .wmd-verified-badge {
     display: inline-block;
     padding: 1px 6px;
@@ -2408,6 +2445,15 @@ class WorkflowModelsDownloader {
                 model.needs_resolve = false;
                 resolved++;
             }
+            // resolve-source HEAD-probes the winner, so its size comes for
+            // free here - no separate round trip for these rows.
+            const bestSize = (data.best && data.best.size)
+                || (data.candidates || []).reduce((acc, c) => acc || (c.size || 0), 0);
+            if (bestSize && !model.size_bytes) {
+                model.size_bytes = bestSize;
+                model.size_str = (data.best && data.best.size_str) || this.formatBytes(bestSize);
+                model.size_estimated = true;
+            }
         }
 
         // Re-render so the new links/evidence show up
@@ -2570,6 +2616,22 @@ class WorkflowModelsDownloader {
                           onclick="window.wmdInstance.showAlternatives(${index})"
                           title="点击查看 ${model.alternatives.length} 个可用备选格式">
                         ${model.alternatives.length} 备选
+                    </span>
+                `;
+            }
+
+            // Same model already on disk under a slightly different name
+            // ("Qwen- image-2.1_int8_convrot" vs "qwen_image_2.1_int8_convrot").
+            // ComfyUI's combo needs the exact string, so the row would say
+            // "缺失" forever and the node would show an empty field. Offer the
+            // one-click re-point instead of a pointless 7 GB re-download.
+            let variantBadge = '';
+            if (!model.exists && model.local_variants && model.local_variants.length > 0) {
+                variantBadge = `
+                    <span class="wmd-variant-badge"
+                          onclick="window.wmdInstance.showLocalVariant(${index})"
+                          title="本地已有同一个模型，只是文件名不同：${model.local_variants[0].filename}">
+                        本地已有·名字不同
                     </span>
                 `;
             }
@@ -2742,8 +2804,9 @@ class WorkflowModelsDownloader {
                         </span>
                     </td>
                     <td><span class="wmd-type-badge">${model.type}</span></td>
+                    <td class="wmd-size-cell" id="wmd-size-${index}">${this.buildSizeCell(model)}</td>
                     <td><div class="wmd-dir-cell">${dirDropdown}<span class="wmd-dir-open" id="wmd-dir-open-${index}">${this.buildOpenFolderButton(model, index)}</span></div></td>
-                    <td class="${statusClass}" id="wmd-status-cell-${index}">${statusText} ${alternativesBadge} ${mirrorsBadge}</td>
+                    <td class="${statusClass}" id="wmd-status-cell-${index}">${statusText} ${variantBadge} ${alternativesBadge} ${mirrorsBadge}</td>
                     <td>${hfLink} ${verifiedBadge}</td>
                     <td>${actionCell}</td>
                 </tr>
@@ -2759,6 +2822,7 @@ class WorkflowModelsDownloader {
                         <tr>
                             <th>文件名</th>
                             <th>类型</th>
+                            <th>大小</th>
                             <th>保存目录</th>
                             <th>状态</th>
                             <th>来源</th>
@@ -2791,6 +2855,10 @@ class WorkflowModelsDownloader {
             filterSelect.value = this.currentFilter;
         }
         this.applyFilter();
+
+        // Fill the 大小 column for rows that are not on disk yet. Fire and
+        // forget: the table is already usable, sizes drop in a second later.
+        this.probeRemoteSizes();
     }
 
     // Auto-resolve all 100% confidence matches
@@ -2985,18 +3053,231 @@ class WorkflowModelsDownloader {
             return;
         }
 
-        // Copy the alternative filename to clipboard with a helpful message
-        navigator.clipboard.writeText(alt.filename).then(() => {
+        // Actually switch the nodes over. Copying the name to the clipboard and
+        // asking the user to paste it into the right node was a placeholder:
+        // "使用该版本" is supposed to make the workflow use it.
+        const changed = this.applyModelToGraph(model.filename, alt.filename);
+
+        if (changed > 0) {
             this.showNotification(
-                `已复制备选文件名 "${alt.filename}"，请在对应节点改用它`,
+                `已把 ${changed} 个节点改用 ${alt.filename}`,
                 'success'
             );
-        }).catch(() => {
-            this.showNotification(
-                `请在节点中改用 ${alt.directory}/ 下的 ${alt.filename}`,
-                'info'
-            );
-        });
+            this.refreshAfterRepoint();
+            return;
+        }
+
+        // No node in this graph uses the requested file (it may live inside a
+        // collapsed subgraph or have been swapped already). Fall back to the
+        // clipboard so the click is never a dead end.
+        this.copyToClipboard(alt.filename,
+            `没找到使用 ${model.filename} 的节点，已复制备选文件名 "${alt.filename}"`,
+            `请在节点中改用 ${alt.directory}/ 下的 ${alt.filename}`);
+    }
+
+    copyToClipboard(text, okMessage, fallbackMessage) {
+        const done = () => this.showNotification(okMessage, 'success');
+        const fail = () => this.showNotification(fallbackMessage, 'info');
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(fail);
+                return;
+            }
+        } catch (e) { /* fall through */ }
+        fail();
+    }
+
+    /**
+     * Every node in the active workflow, subgraph interiors included.
+     * Guards against cycles (a subgraph node's `.graph` points back out).
+     */
+    _collectGraphNodes() {
+        const out = [];
+        const seen = new Set();
+        const visit = (graph, depth) => {
+            if (!graph || depth > 8 || seen.has(graph)) return;
+            seen.add(graph);
+            for (const node of (graph._nodes || [])) {
+                out.push(node);
+                const inner = node.subgraph
+                    || (node.graph && node.graph !== graph ? node.graph : null);
+                if (inner) visit(inner, depth + 1);
+            }
+        };
+        try {
+            visit(window.app && window.app.graph, 0);
+        } catch (e) {
+            console.warn("[WMD] graph walk failed:", e);
+        }
+        return out;
+    }
+
+    /**
+     * Point the nodes that load `oldName` at `newName` instead.
+     *
+     * Matching is by widget value: the model picker of every loader node is a
+     * plain string widget, so an exact string match is the node that would
+     * fail. When no exact match exists we fall back to basename matching (the
+     * widget may carry a "subfolder/" prefix).
+     * Returns how many widgets were changed.
+     */
+    applyModelToGraph(oldName, newName) {
+        if (!window.app || !window.app.graph || !oldName || !newName) return 0;
+        if (oldName === newName) return 0;
+
+        const base = n => String(n).split(/[\\/]/).pop().toLowerCase();
+        const oldBase = base(oldName);
+
+        const exact = [];
+        const loose = [];
+        for (const node of this._collectGraphNodes()) {
+            for (const widget of (node.widgets || [])) {
+                const value = widget && widget.value;
+                if (typeof value !== 'string') continue;
+                if (value === oldName) exact.push({ node, widget });
+                else if (base(value) === oldBase) loose.push({ node, widget });
+            }
+        }
+        const targets = exact.length ? exact : loose;
+
+        for (const { node, widget } of targets) {
+            const previous = widget.value;
+            widget.value = newName;
+            // Keep the combo's option list in sync: without this the canvas
+            // paints the new value in red as if the file did not exist.
+            try {
+                const values = widget.options && widget.options.values;
+                if (Array.isArray(values) && !values.includes(newName)) values.push(newName);
+            } catch (e) { /* frozen options: harmless */ }
+            // Keep the saved workflow's own model metadata consistent too.
+            try {
+                const models = node.properties && node.properties.models;
+                if (Array.isArray(models)) {
+                    for (const m of models) {
+                        if (m && m.name === previous) m.name = newName;
+                    }
+                }
+            } catch (e) { /* best effort */ }
+            try {
+                if (typeof node.onWidgetChanged === "function") {
+                    node.onWidgetChanged(widget.name, newName, previous, widget);
+                }
+            } catch (e) { /* not all nodes implement it */ }
+        }
+
+        if (targets.length) {
+            try { window.app.graph.setDirtyCanvas(true, true); } catch (e) { }
+            try { window.app.graph.change(); } catch (e) { }  // mark workflow modified
+        }
+        return targets.length;
+    }
+
+    async refreshAfterRepoint() {
+        // The graph is the source of truth now: re-scan so the row turns into
+        // "已存在" (or at least stops claiming a download is needed).
+        try {
+            await this.scanWorkflow();
+        } catch (e) {
+            console.error("[WMD] re-scan after re-point failed:", e);
+        }
+    }
+
+    showLocalVariant(index) {
+        const model = this.models[index];
+        const variants = model?.local_variants || [];
+        if (!variants.length) {
+            this.showNotification('没有找到本地同名文件', 'info');
+            return;
+        }
+        const v = variants[0];
+
+        const existing = document.querySelector('.wmd-alternatives-popup');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'wmd-modal-overlay';
+        overlay.style.zIndex = '10000';
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+        const popup = document.createElement('div');
+        popup.className = 'wmd-alternatives-popup';
+        popup.innerHTML = `
+            <h3>本地已有同一个模型</h3>
+            <p style="color: #888; margin-bottom: 12px;">
+                工作流要的是：<strong>${model.filename}</strong>
+            </p>
+            <div class="wmd-alternative-item">
+                <div class="wmd-alternative-info">
+                    <div class="wmd-alternative-name">${v.filename}</div>
+                    <div class="wmd-alternative-meta">
+                        <span class="wmd-format-badge">${v.size || '未知大小'}</span>
+                        ${v.directory}${v.same_dir ? ' · 同目录' : ' · 在其它目录'}
+                    </div>
+                    <div class="wmd-alternative-meta" style="word-break: break-all; font-size: 11px;">${v.path}</div>
+                </div>
+            </div>
+            <p style="color: #888; font-size: 12px; margin: 12px 0;">
+                ComfyUI 的模型下拉框按<strong>完整文件名</strong>精确匹配，所以名字差一个空格或横线，
+                节点里就是空的、面板也会说「缺失」。两种修法效果一样：都不重新下载。
+            </p>
+            <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+                <button class="wmd-btn wmd-btn-secondary" onclick="this.closest('.wmd-modal-overlay').remove();">
+                    取消
+                </button>
+                <button class="wmd-btn wmd-btn-info"
+                        onclick="window.wmdInstance.renameVariantToStandard(${index}); this.closest('.wmd-modal-overlay').remove();">
+                    重命名为标准名
+                </button>
+                <button class="wmd-btn wmd-btn-primary"
+                        onclick="window.wmdInstance.useLocalVariant(${index}); this.closest('.wmd-modal-overlay').remove();">
+                    让节点改用它
+                </button>
+            </div>
+        `;
+        overlay.appendChild(popup);
+        document.body.appendChild(overlay);
+    }
+
+    useLocalVariant(index) {
+        const model = this.models[index];
+        const v = (model?.local_variants || [])[0];
+        if (!model || !v) return;
+        const changed = this.applyModelToGraph(model.filename, v.filename);
+        if (changed > 0) {
+            this.showNotification(`已把 ${changed} 个节点改用本地文件 ${v.filename}`, 'success');
+            this.refreshAfterRepoint();
+        } else {
+            this.showNotification(`没找到使用 ${model.filename} 的节点，可以改用「重命名为标准名」`, 'error');
+        }
+    }
+
+    async renameVariantToStandard(index) {
+        const model = this.models[index];
+        const v = (model?.local_variants || [])[0];
+        if (!model || !v) return;
+        // Renaming is the cleaner fix (the graph, the saved workflow and the
+        // shared workflow all agree afterwards) but it touches the file on
+        // disk, so it must be an explicit yes.
+        const ok = window.confirm(
+            `把磁盘上的文件改名？\n\n原文件：${v.filename}\n改为：${model.filename}\n\n` +
+            `同一目录内改名，不复制、不下载，文件大小不变（${v.size || '未知'}）。`);
+        if (!ok) return;
+        try {
+            const response = await api.fetchApi("/workflow-models/rename-variant", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ path: v.path, target_filename: model.filename })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                this.showNotification(`改名失败：${result.error || response.status}`, 'error');
+                return;
+            }
+            this.showNotification(`已改名为 ${model.filename}`, 'success');
+            this.refreshAfterRepoint();
+        } catch (error) {
+            this.showNotification(`改名失败：${error.message}`, 'error');
+        }
     }
 
     async fuzzyMatch(index) {
@@ -3223,14 +3504,90 @@ class WorkflowModelsDownloader {
         // file manager (works even when the file sits in a user-made
         // subfolder, because the backend resolved its actual path during
         // the scan).
-        if (!model.exists && !model.incomplete) return '';
+        // Rendered for EVERY row, missing ones included: for a model that is
+        // not here yet the button opens the folder it is supposed to land in,
+        // which is exactly what you want to look at while deciding. Gating the
+        // button on `exists` made it vanish from the whole column whenever a
+        // workflow had nothing downloaded yet.
+        const missing = !model.exists && !model.incomplete;
+        const target = missing ? model.full_path : (model.actual_path || model.full_path);
+        const label = missing ? '打开目标文件夹（还未下载）' : '打开所在文件夹并选中文件';
         return `
             <button class="wmd-btn wmd-btn-secondary wmd-btn-small"
                     onclick="window.wmdInstance.openModelFolder(${index})"
-                    title="打开所在文件夹：${model.actual_path || model.full_path}">
+                    title="${label}：${target}">
                 \uD83D\uDCC2
             </button>
         `;
+    }
+
+    formatBytes(bytes) {
+        if (!bytes) return '';
+        const gb = bytes / 1073741824;
+        if (gb >= 1) return gb.toFixed(2) + " GB";
+        return (bytes / 1048576).toFixed(1) + " MB";
+    }
+
+    buildSizeCell(model) {
+        // 大小 column. On disk -> the real size (backend formats it). Missing ->
+        // the remote size, marked with ≈ because it is what the server reports,
+        // not bytes we have. This is the number that decides "download or not".
+        if (model.exists || model.incomplete) {
+            return `<span class="wmd-size-local">${model.size_str || model.local_size || '—'}</span>`;
+        }
+        if (model.size_bytes) {
+            const approx = model.size_estimated ? '≈ ' : '';
+            const tip = model.size_estimated ? '远端文件大小（尚未下载）' : '文件大小';
+            return `<span class="wmd-size-remote" title="${tip}">${approx}${model.size_str || this.formatBytes(model.size_bytes)}</span>`;
+        }
+        return `<span class="wmd-size-pending" title="尚未查到文件大小">—</span>`;
+    }
+
+    /**
+     * Ask the backend for the size of every missing model that already has a
+     * URL. One request, parallel HEADs server-side; cells are patched in place
+     * so the table never re-renders (and never flickers) under the user.
+     */
+    async probeRemoteSizes() {
+        const rows = this.models
+            .map((m, i) => ({ m, i }))
+            .filter(({ m }) => !m.exists && !m.size_bytes && m.url && !m.size_probing);
+        if (rows.length === 0) return;
+
+        rows.forEach(({ m }) => { m.size_probing = true; });
+        rows.forEach(({ i }) => {
+            const cell = document.getElementById(`wmd-size-${i}`);
+            if (cell) cell.innerHTML = '<span class="wmd-size-pending" title="正在查询文件大小…">…</span>';
+        });
+
+        try {
+            const response = await api.fetchApi("/workflow-models/remote-sizes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    items: rows.map(({ m }) => ({ filename: m.filename, url: m.url }))
+                })
+            });
+            const data = await response.json();
+            for (const { m, i } of rows) {
+                const size = (data && data.sizes && data.sizes[m.filename]) || 0;
+                if (size) {
+                    m.size_bytes = size;
+                    m.size_str = (data.size_str && data.size_str[m.filename]) || this.formatBytes(size);
+                    m.size_estimated = true;
+                }
+                const cell = document.getElementById(`wmd-size-${i}`);
+                if (cell) cell.innerHTML = this.buildSizeCell(m);
+            }
+        } catch (error) {
+            console.error("[WMD] remote-sizes failed:", error);
+            rows.forEach(({ i }) => {
+                const cell = document.getElementById(`wmd-size-${i}`);
+                if (cell && this.models[i]) cell.innerHTML = this.buildSizeCell(this.models[i]);
+            });
+        } finally {
+            rows.forEach(({ m }) => { m.size_probing = false; });
+        }
     }
 
     refreshDirOpenButton(index) {
