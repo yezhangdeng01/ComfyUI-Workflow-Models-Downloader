@@ -1,54 +1,61 @@
-# Changelog
+# 更新日志
 
-All notable changes to this project are documented in this file.
+本项目的所有重要变更记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。
 
 ## 1.11.0 - 2026-10-23
 
-### Features
-- Model size column - every scanned model now shows its size before you commit to a download. Files on disk report the size declared in their safetensors header (correct even for a truncated download); missing models are size-probed in the background, shown with a leading `≈` because it is what the server reports rather than bytes you have
-- "Use this version" now really switches the node - the alternatives dialog used to copy the filename to the clipboard and ask you to paste it somewhere. It now rewrites the model widget of every loader node using that file (subgraphs included), keeps the combo's option list in sync, updates the workflow's recorded model metadata and marks the workflow as modified
-- Same model under a different filename is detected - ComfyUI's combo box matches the exact relative path, so `Qwen- image-2.1_int8_convrot.safetensors` (7,256,783,064 B) was invisible to a workflow asking for `qwen_image_2.1_int8_convrot.safetensors` (same 7,256,783,064 B): the node showed an empty field and the panel reported "missing". Such rows now carry a "same model, different name" chip with two one-click fixes - re-point the node, or rename the file in place (same folder, no copy, no download, refused unless both names normalize to the same model)
+### 新功能
+- 文件大小列 - 每个扫出的模型在下载前就能看到体积。在盘上的读 safetensors header 声明的总字节（截断的下载也准）；缺失的由后台 HEAD 探测，显示为 `≈ 6.76 GB`，表示这是服务器给的值、不是你手里已有的字节
+- 「使用该版本」现在真的切换节点 - 备选弹窗原先只把文件名复制到剪贴板、提示你自己去节点里改。现在会改写所有用着该文件的加载节点的模型 widget（含子图），同步下拉框的选项列表、更新工作流里记录模型元数据，并把工作流标记为已修改
+- 同名不同写的模型能被识别 - ComfyUI 的模型下拉框按完整相对路径精确匹配，于是 `Qwen- image-2.1_int8_convrot.safetensors`（7,256,783,064 字节）对要 `qwen_image_2.1_int8_convrot.safetensors`（同样 7,256,783,064 字节）的工作流完全不可见：节点里是空的，面板报「缺失」。这类行现在带一枚「本地已有·名字不同」徽章，两条一键修法 - 让节点改用它，或原地改名（同目录、不复制、不下载；两个名字规范化后不是同一个模型时直接拒绝）
 
-### Fixes
-- Type badge no longer contradicts the save folder - the `^qwen.*(convrot|int8|bf16|...)` filename rule labelled a diffusion model and a VAE as "Text Encoder (Qwen)" while the folder column already said `diffusion_models` / `vae`. The loader node's own label now wins whenever it proves a different folder (`UNETLoader` -> Diffusion Model, `VAELoader` -> VAE)
-- The folder button is back in the save-folder column for every row - it was gated on the file existing, so a workflow with nothing downloaded yet lost the button in the whole column. Missing rows now open the folder the model is supposed to land in
-- Candidate sizes were always reported as 0 - `resolve-source` returned the size listed by the source API while the HEAD-probe result was stored in a different field
-- Ghost "missing" rows after a re-point - the old filename survives inside the node's recorded download URL and got picked up by the scan again. A row is now dropped when no node references it any more and the same model is already on disk under another name
+### 修复
+- 类型徽章不再与保存目录自相矛盾 - 文件名规则 `^qwen.*(convrot|int8|bf16|…)` 把扩散模型和 VAE 都标成「Text Encoder (Qwen)」，而目录列已经写着 `diffusion_models` / `vae`。现在只要加载节点证明是另一个目录，就以节点自己的标签为准（`UNETLoader` → Diffusion Model，`VAELoader` → VAE）
+- 保存目录列的文件夹按钮恢复为每行都有 - 原先它只在文件已存在时渲染，于是「一个都没下载」的工作流整列都没有按钮。缺失行现在打开「该落到哪个目录」
+- 候选项体积恒为 0 - `resolve-source` 返回的是来源 API 给的 size，而 HEAD 探测结果记在另一个字段
+- 重指向后多出的幽灵「缺失」行 - 旧文件名残留在节点记录的下载 URL 里，又被扫描捞回来。现在只有当「没有任何节点再用它」且「同一模型已以另一个名字在盘上」时才丢弃该行
+
+### 文档
+- 四份阶段进度笔记合并为一份 [`docs/DEV-NOTES.md`](docs/DEV-NOTES.md)：架构地图、硬性约定、踩坑清单、历史时间线
+- 中英两份 CHANGELOG 合并为单份中文（本文件）
+- `CONTRIBUTING.md` 重写为中文，删掉指向不存在文件的过期说明，补上"怎么在不打扰用户的情况下验证"与"硬性约定"
+- 删除 8 张 README 已不再引用的旧截图，只保留 Registry 图标
+- 清理 `.gitignore` 里的重复条目
 
 ## 1.10.1 - 2026-10-21
 
-### Improvements
-- README rewritten in Chinese - documents the two fatal problems of the upstream release (models that could not be found, downloads that could not resume), lists every improvement of this fork with measured numbers, and states the ongoing-maintenance commitment
-- Positioning is now explicit: a Chinese-optimized fork of the upstream node. UI, prompts and help docs are all in Chinese
-- README gained a "network resilience" section documenting the ModelScope source architecture, the HF mirror priority chain, the aria2 flags and the real throughput-probe selection
-- README settings table now lists all 7 native ComfyUI settings entries
+### 改进
+- README 全面改为中文 - 说明上游版本"搜不到模型"与"不能续传"两个致命问题，逐项列出本分支的改进、实测数据、持续维护承诺
+- 插件定位明确为"上游节点的中文优化版"，界面、提示、帮助文档全部为中文
+- README 补充"网络适应"章节 - 完整说明 ModelScope（魔搭）常驻选源架构、HF 镜像的三级优先级、aria2 加速参数、真实测速选优机制
+- README 设置表补全 7 个原生设置项（令牌 / 镜像开关 / 镜像域名 / 并行数 / 高级搜索）
 
-### Fixes
-- Fixed node/grid misalignment on high-DPI displays - `comfyui-mixlab-nodes` overrides `LGraphCanvas.drawBackCanvas` and detects the device pixel ratio by grepping the minified frontend source for `window.devicePixelRatio`; that literal no longer exists, so the background grid was permanently drawn at scale 1 while nodes rendered at the real DPR. A bundled web extension now keeps both canvases on the same ratio and follows live browser-zoom changes
+### 修复
+- 修复高分屏下节点与背景网格错位 - `comfyui-mixlab-nodes` 覆盖了 `LGraphCanvas.drawBackCanvas`，并通过在压缩后的前端源码里检索 `window.devicePixelRatio` 字面量来探测设备像素比；该字面量已不存在，导致背景网格被永久锁定为 1 倍绘制，而节点按真实 DPR 渲染。插件内置的 web 扩展会让两个画布保持同一倍率，并在浏览器缩放变化时自动跟随
 
-### Compliance
-- Removed runtime `pip install` - the Comfy Registry forbids installing packages via subprocess during node startup; missing dependencies are now only reported, with the install command shown
-- `requires-python` corrected from `>=3.9` to `>=3.10` (the code uses 3.10+ syntax)
-- Removed the leftover upstream `.circleci/config.yml` (an unused say-hello template)
-- The publish workflow is now manual-dispatch only; pushing no longer publishes automatically
+### 合规
+- 移除运行时 `pip install` - Comfy Registry 明确禁止通过子进程在节点启动时安装依赖；现在只提示缺失依赖并给出安装命令
+- `requires-python` 由 `>=3.9` 修正为 `>=3.10`（代码使用 3.10+ 语法）
+- 移除上游遗留的 `.circleci/config.yml`（无用的 say-hello 模板）
+- 发布工作流改为仅手动触发，push 不再自动发布
 
 ## 1.9.0 - 2026-10-21
 
-### Features
-- Automatic source resolution - missing models are resolved in the background and the best-verified download link is selected automatically
-- Verified vs best-guess badge - every model shows whether its source is confirmed by objective checks or only a best guess, together with the evidence
-- Evidence-based source scoring - candidates are ranked by remote size match, target-folder match, and official-publisher namespace instead of name guessing
-- Persistent resolution cache - resolved sources survive restarts, so a re-scan no longer shows "no link"
-- Correct target folder detection - models are matched and saved in the ComfyUI folder the loading node actually reads from
-- Faster workflow scan - scanning is local-only, so the model table appears in well under a second
+### 新功能
+- 自动选源 - 缺失模型在后台自动解析，自动选定已校验的最佳下载链接
+- 已校验 / 最佳猜测 徽章 - 每个模型都标明其来源是经过客观校验确认，还是仅为最佳猜测，并展示判定依据
+- 依据驱动的源评分 - 候选来源按远端文件大小匹配、目标目录匹配、官方发布命名空间排序，而非靠名字猜测
+- 解析结果持久化 - 已选定的来源跨重启保留，重新扫描不再显示"无链接"
+- 目标目录判定修正 - 模型匹配并保存到加载节点实际读取的 ComfyUI 目录
+- 扫描提速 - 扫描纯本地执行，模型表格几乎瞬间呈现
 
-### Fixes
-- Fixed a NameError in the download progress loop that aborted every download and forced endless retries
-- Interrupted downloads now keep every byte already received instead of discarding the buffer, so a 10 GB model resumes instead of restarting
-- Fixed model lookups for workflow references that carry a subfolder prefix (e.g. `moss\model.safetensors`)
-- Removed duplicate "ghost" rows where the same model appeared twice, once with a wrong target folder
-- Expected model size is now read from the safetensors header, so a half-downloaded file is still matched against the correct size
-- Model lookups no longer pick a metadata-poor record and lose the repository/path information of the real match
+### 修复
+- 修复下载进度循环中的 NameError，它会中断每次下载并导致无限重试
+- 下载中断后保留已接收的每一个字节，不再丢弃缓冲，大文件得以续传而非从头再来
+- 修复带子目录前缀的工作流引用（如 `moss\model.safetensors`）的模型查表
+- 移除重复的"幽灵行"——同一模型曾出现两次，其中一行目标目录错误
+- 期望文件大小改为从 safetensors header 读取，半下载状态也能正确比对大小
+- 模型查表不再保留信息贫乏的记录而丢失真正匹配的仓库与路径信息
 
-### Documentation
-- Removed internal development progress notes from the published repository
+### 文档
+- 内部进度流水账不进发布仓库；开发者文档统一放 `docs/`

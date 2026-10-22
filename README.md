@@ -12,6 +12,8 @@
 
 **界面为中文，定位是上游节点的中文优化版。**
 
+> 想直接用 → 往下看「安装」「使用」；想改代码 → [`docs/DEV-NOTES.md`](docs/DEV-NOTES.md)。
+
 ---
 
 ## 这是什么：上游版本的两个致命问题
@@ -65,41 +67,29 @@
 
 实测：9.75GB 的 qwen 模型从 61% 平滑续传到 100%，最终字节数与 safetensors header 推导值完全一致。
 
-### 网络适应：多源测速选优 + 镜像 + 加速
+### 表格：先看清代价再动手
 
-针对国内网络环境，插件内置了三层应对策略：
+| 改进 | 说明 |
+|---|---|
+| **体积列** | 每个模型标出大小，下载前就知道是 644MB 还是 20GB。在盘上的读 safetensors header 声明的总字节（截断的下载也准）；缺失的由后台 HEAD 探测，前面带 `≈` 表示"这是服务器报的体积" |
+| **备选真的会切换节点** | 备选弹窗里的「使用该版本」直接改写用着该文件的加载节点（含子图内部），同步下拉框选项与工作流元数据——不是把文件名丢给你自己去粘贴 |
+| **同名不同写能认出来** | 磁盘上是 `Qwen- image-2.1_int8_convrot.safetensors` 而工作流要 `qwen_image_2.1_int8_convrot.safetensors`（**同一份字节**）时，ComfyUI 的下拉框按完整路径精确匹配，节点里就是空的。这类行会带一枚「本地已有·名字不同」徽章：可以让节点改用它（只动图），也可以原地改名（不复制、不下载） |
+| **📂 每行都有** | 已在盘上的打开并选中文件；缺失的打开"该落到哪个目录"，方便先看看再决定 |
 
-#### 1. ModelScope（魔搭）作为长期通用选优源
+### 网络适应：多源测速选优
 
-不是为某个工作流临时加的，而是做成了**通用架构**——魔搭是常驻的第二选源：
+国内直连 HuggingFace 不稳，这一层做了四件事（实现细节见 [`docs/DEV-NOTES.md`](docs/DEV-NOTES.md)）：
 
-- **优先级顺序**：内置精选源表（`KNOWN_GOOD_SOURCES`）→ 魔搭 → HuggingFace / CivitAI
-- **命中规则**（按优先级）：精选源表里显式写的 `modelscope_repo` → 按模型名/目录命中的仓库提示表（`Comfy-Org/MiniMax-H3`、`Comfy-Org`、`Wan-AI`、`qwen`、`Comfy-Org/flux`、`Comfy-Org/stable-diffusion-3`、`Comfy-Org/stable-diffusion-xl`）→ 兜底整个 `Comfy-Org` 命名空间
-- **只接受精确文件名匹配**（`basename` 全等），不猜相似名——这是修复上游"模糊匹配把 `taeh3` 错配到 FLUX 私有库导致 401 死循环"的核心约束
-- **目录映射覆盖 23 种**：`diffusion_models`、`text_encoders`、`vae`、`loras`、`controlnet`、`clip_vision`、`embeddings`、`upscale_models`、`animatediff_models`、`ipadapter`、`instantid`、`pulid`、`sams`、`model_patches` 等
-- **实测**：魔搭上有若干模型 HuggingFace 根本没有（只有魔搭能提供）；对同一模型魔搭实测 **2.13 MB/s vs HF**，测速后自动选中魔搭
+| 能力 | 说明 |
+|---|---|
+| **ModelScope（魔搭）常驻第二源** | 不是为某个工作流临时加的：内置精选源表 → 魔搭 → HuggingFace / CivitAI 依次尝试。**只接受精确文件名匹配**，不猜相似名；路径→目录映射覆盖 23 种模型类型 |
+| **HuggingFace 镜像** | 设置里可开关，也读环境变量 `HF_ENDPOINT` / `HF_MIRROR` / `HF_HUB_ENDPOINT`（优先级：插件设置 > 环境变量 > 直连）。同时作用于来源搜索与实际下载，存的仍是规范 URL |
+| **aria2 加速** | 检测到 `aria2c` 自动启用（4 连接分片 + 续传），未安装则回落 Python 下载；下载面板实时显示速度与剩余时间 |
+| **真实测速选优** | 每个候选实际拉 1MB 计时，按速度降序取最快；全部失败时给出同族推荐（相似度 → 覆盖度 → 体积接近度） |
 
-#### 2. HuggingFace 镜像
+实测：同一模型魔搭 2.13 MB/s 胜出，测速后自动被选中。
 
-- **设置项**：ComfyUI → 设置 → 工作流模型管理 → 启用镜像 / 镜像域名（默认 `hf-mirror.com`）
-- **优先级**：插件设置 > 环境变量 `HF_ENDPOINT` / `HF_MIRROR` / `HF_HUB_ENDPOINT` > 直连
-- 绘世/Aki 启动器虽然能注入 `HF_ENDPOINT`，但本插件之前不读它——现在读了
-- 镜像同时作用于 **HF API 搜索**和**实际下载**，存储的仍是规范 URL
-- ⚠️ Windows 上 `curl` 直连镜像可能报 `CRYPT_E_REVOCATION_OFFLINE`（证书吊销检查离线），这是 Windows schannel 的问题不是镜像挂了；插件用 Python `requests` 不受影响，aria2 走 `--check-certificate=false`
-
-#### 3. aria2 多线程加速
-
-- 检测到 `aria2c` 即自动启用（`shutil.which`），未安装则回落到 Python 下载
-- 参数：`--continue=true`（续传）、`--max-connection-per-server=4`、`--split=4`、`--min-split-size=1M`、`--file-allocation=none`
-- **`--check-certificate=false` 是必需的**：不加会因 Windows 证书吊销检查离线导致每次 TLS 握手失败
-- 下载面板实时显示**速度**（MB/s）与**剩余时间**
-
-#### 4. 真实测速选优
-
-不是"哪个源先返回就用哪个"，而是**真的拉一段数据测速**：
-
-- 每个候选源实际下载 1MB 计时，按速度降序排列
-- 候选全部失败时返回"无精确匹配"，并给出**同族推荐列表**（token 重叠匹配，忽略量化词/包装词，排序 = 相似度 → 覆盖度 → **体积接近度**）
+> ⚠️ Windows 上 `curl` 直连镜像可能报 `CRYPT_E_REVOCATION_OFFLINE`，那是 schannel 的证书吊销检查问题，不是镜像挂了。插件用 `requests` 不受影响，aria2 走 `--check-certificate=false`。
 
 ### 高分屏画布错位修复
 
@@ -111,9 +101,8 @@ Windows 显示缩放 125% + 浏览器缩放 90%/100% 时，ComfyUI 画布会出�
 
 ### 其他
 
-- **中文界面**：全部界面、提示、帮助文档均为中文
-- **注册表合规**：移除了运行时 `pip install`（Registry 安全政策禁止），依赖由 ComfyUI-Manager 统一安装
-- **镜像支持**：可配置 HuggingFace 镜像域名，大陆网络直连不稳定时推荐开启
+- **中文界面**：界面、提示、帮助页全部中文
+- **注册表合规**：移除运行时 `pip install`（Registry 禁止），依赖由 ComfyUI-Manager 统一安装，缺依赖只提示不擅自安装
 
 ---
 
@@ -142,8 +131,19 @@ pip install -r ComfyUI-Workflow-Models-Downloader/requirements.txt
 
 1. 在 ComfyUI 中打开任意工作流
 2. 点击顶部菜单的 **「工作流模型管理」** 按钮
-3. 查看自动扫描出的模型清单与状态（已存在 / 缺失 / 可下载）
-4. 对缺失模型点击 **下载**，或用 **下载全部缺失** 批量处理
+3. 看表格：每个模型带着**类型 / 大小 / 该存到哪 / 状态 / 来源**
+4. 决定要下的，点 **下载**；全都要，点 **下载全部缺失**
+
+### 「本地已有·名字不同」是什么意思
+
+你磁盘上有这个模型，但文件名跟工作流写的不完全一致（多一个空格、横线换成下划线、多个 `_v1`）。ComfyUI 的模型下拉框按完整路径精确匹配，所以**节点里是空的，面板也报缺失**——但字节是一样的，不必重下。
+
+点这枚蓝色徽章，二选一：
+
+| 选项 | 效果 | 什么时候用 |
+|---|---|---|
+| **让节点改用它** | 只改工作流里的节点指向，不动磁盘 | 想保留现有文件名 |
+| **重命名为标准名** | 同目录改名（`os.rename`，不复制不下载） | 想让工作流原样就能跑、方便分享 |
 
 ### 找不到来源的模型
 
@@ -165,7 +165,7 @@ pip install -r ComfyUI-Workflow-Models-Downloader/requirements.txt
 
 | 页签 | 用途 |
 |---|---|
-| **工作流模型** | 扫描当前工作流所需模型，显示状态、来源与依据 |
+| **工作流模型** | 扫描当前工作流所需模型，显示大小、状态、来源与依据 |
 | **下载** | 直链下载、进行中的任务、历史记录 |
 | **本地模型** | 按目录浏览已安装模型，查看路径、修改时间、删除 |
 | **工作流** | 三栏布局：工作流列表 → 该工作流的模型 → 模型详情与来源管理 |
@@ -175,17 +175,7 @@ pip install -r ComfyUI-Workflow-Models-Downloader/requirements.txt
 
 ## 支持的模型类型
 
-- Checkpoints（SD1.5 / SDXL / SD3 / Flux）
-- Diffusion Models（Wan / LTX / HunyuanVideo / MOSS 等）
-- VAE
-- LoRA / LoHa / LoKr
-- Text Encoders（T5 / CLIP / Qwen 等）
-- CLIP Vision
-- ControlNet
-- IP-Adapter
-- Upscalers（ESRGAN 等）
-- SAM / SAM2
-- 以及更多……
+Checkpoints（SD1.5 / SDXL / SD3 / Flux）、Diffusion Models（Wan / LTX / HunyuanVideo / MOSS…）、VAE、LoRA / LoHa / LoKr、Text Encoders（T5 / CLIP / Qwen）、CLIP Vision、ControlNet、IP-Adapter、Upscalers（ESRGAN 等）、SAM / SAM2，以及按扩展名扫描到的其它 `.safetensors` / `.ckpt` / `.pt` / `.gguf` 模型。
 
 ---
 
@@ -193,18 +183,14 @@ pip install -r ComfyUI-Workflow-Models-Downloader/requirements.txt
 
 - ComfyUI
 - Python 3.10+
-- `requests`
-- `huggingface_hub`
-
-### 可选（用于加速下载）
-
-- [aria2](https://aria2.github.io/) —— 约 4 倍速下载，支持自动续传
+- Python 依赖见 [`requirements.txt`](requirements.txt)，由 ComfyUI-Manager 负责安装
+- 可选：[aria2](https://aria2.github.io/) —— 约 4 倍速下载，支持自动续传
 
 ---
 
-## API 密钥
+## 设置项
 
-在 **设置** 页签（ComfyUI 菜单 → 设置 → 工作流模型管理）中配置：
+在 ComfyUI **原生设置面板** →「工作流模型管理」中配置（共 7 项，改完重启 ComfyUI 生效）：
 
 | 设置项 | 用途 | 说明 |
 |---|---|---|
@@ -216,15 +202,17 @@ pip install -r ComfyUI-Workflow-Models-Downloader/requirements.txt
 | **最大并行下载数** | 同时下载几个模型 | 默认 8 |
 | **启用高级搜索** | 开启 Tavily 搜索 | 默认开启 |
 
-> 插件的 7 个设置项都注册在 ComfyUI **原生设置面板**里，分类为「工作流模型管理」，重启 ComfyUI 后生效。
-
 ---
 
 ## 后续维护
 
 这是一个**持续维护的中文优化分支**。使用中遇到问题会继续修复更新。
 
-完整改动记录见 [`CHANGELOG.md`](CHANGELOG.md) / [`CHANGELOG.zh.md`](CHANGELOG.zh.md)。
+| 想看什么 | 去哪 |
+|---|---|
+| 每个版本改了什么 | [`CHANGELOG.md`](CHANGELOG.md) |
+| 自己改这个插件 | [`docs/DEV-NOTES.md`](docs/DEV-NOTES.md)（架构地图、硬性约定、踩坑清单、怎么验证） |
+| 参与贡献 | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 
 ## 致谢与许可
 

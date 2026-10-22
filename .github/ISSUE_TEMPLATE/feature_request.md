@@ -1,27 +1,27 @@
 ---
-name: Feature Request
-about: Suggest a new feature or improvement
+name: 功能建议
+about: 提一个新功能或改进想法
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
 ---
 
-## Feature Description
+## 想要什么
 
-A clear description of the feature you'd like.
+一句话说清。
 
-## Use Case
+## 为什么
 
-Why would this feature be useful? What problem does it solve?
+它解决什么实际问题？最好给一个真实场景（比如"哪类工作流、卡在哪一步"）。
 
-## Proposed Solution
+## 你设想的做法
 
-How do you think this could be implemented?
+有思路就写，没有也行。
 
-## Alternatives Considered
+## 考虑过的替代方案
 
-Any alternative solutions you've considered.
+比如现成的其它插件、手动做法、为什么不够用。
 
-## Additional Context
+## 补充
 
-Any other context, screenshots, or examples.
+截图、日志、示例工作流都可以。
