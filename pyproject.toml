@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-workflow-model-manager"
 description = "工作流模型管理 - 扫描工作流中引用的模型，自动从 HuggingFace、CivitAI 等来源解析并下载缺失模型，支持目录自动识别、来源校验与断点续传。"
-version = "1.10.1"
+version = "1.11.0"
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.10"

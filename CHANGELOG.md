@@ -2,7 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
-## Unreleased
+## 1.11.0 - 2026-10-23
+
+### Features
+- Model size column - every scanned model now shows its size before you commit to a download. Files on disk report the size declared in their safetensors header (correct even for a truncated download); missing models are size-probed in the background, shown with a leading `≈` because it is what the server reports rather than bytes you have
+- "Use this version" now really switches the node - the alternatives dialog used to copy the filename to the clipboard and ask you to paste it somewhere. It now rewrites the model widget of every loader node using that file (subgraphs included), keeps the combo's option list in sync, updates the workflow's recorded model metadata and marks the workflow as modified
+- Same model under a different filename is detected - ComfyUI's combo box matches the exact relative path, so `Qwen- image-2.1_int8_convrot.safetensors` (7,256,783,064 B) was invisible to a workflow asking for `qwen_image_2.1_int8_convrot.safetensors` (same 7,256,783,064 B): the node showed an empty field and the panel reported "missing". Such rows now carry a "same model, different name" chip with two one-click fixes - re-point the node, or rename the file in place (same folder, no copy, no download, refused unless both names normalize to the same model)
+
+### Fixes
+- Type badge no longer contradicts the save folder - the `^qwen.*(convrot|int8|bf16|...)` filename rule labelled a diffusion model and a VAE as "Text Encoder (Qwen)" while the folder column already said `diffusion_models` / `vae`. The loader node's own label now wins whenever it proves a different folder (`UNETLoader` -> Diffusion Model, `VAELoader` -> VAE)
+- The folder button is back in the save-folder column for every row - it was gated on the file existing, so a workflow with nothing downloaded yet lost the button in the whole column. Missing rows now open the folder the model is supposed to land in
+- Candidate sizes were always reported as 0 - `resolve-source` returned the size listed by the source API while the HEAD-probe result was stored in a different field
+- Ghost "missing" rows after a re-point - the old filename survives inside the node's recorded download URL and got picked up by the scan again. A row is now dropped when no node references it any more and the same model is already on disk under another name
+
+## 1.10.1 - 2026-10-21
 
 ### Improvements
 - README rewritten in Chinese - documents the two fatal problems of the upstream release (models that could not be found, downloads that could not resume), lists every improvement of this fork with measured numbers, and states the ongoing-maintenance commitment
