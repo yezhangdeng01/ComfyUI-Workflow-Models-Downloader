@@ -27,7 +27,7 @@ git commit -m "fix: 简述改了什么"
 
 ## 改动前必读
 
-[`docs/DEV-NOTES.md`](docs/DEV-NOTES.md) 里有一节**硬性约定**，都是踩坑换来的，别推翻。最要紧的四条：
+[`PROGRESS.md`](PROGRESS.md) 里有一节**硬性约定**，都是踩坑换来的，别推翻。最要紧的四条：
 
 1. **扫描里不许有网络调用**——表要先出来，远端信息走后台端点
 2. **类型和目录必须一致**——文件名规则只是启发式，加载节点自己的选项列表才是真相
@@ -48,7 +48,7 @@ cd ComfyUI
 python main.py --port 8189 --cpu --disable-auto-launch
 ```
 
-前端改动建议用无头浏览器读 DOM 判据（`widget.value`、`scrollWidth`），而不是看截图猜。完整方法（含离线加载 `server.py` 的最小骨架）在 [`docs/DEV-NOTES.md`](docs/DEV-NOTES.md) 第二节。
+前端改动建议用无头浏览器读 DOM 判据（`widget.value`、`scrollWidth`），而不是看截图猜。完整方法（含离线加载 `server.py` 的最小骨架）在 [`PROGRESS.md`](PROGRESS.md) 第二节。
 
 ## 新增模型来源
 

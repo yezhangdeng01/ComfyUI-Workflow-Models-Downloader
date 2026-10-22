@@ -41,5 +41,5 @@ _backup_*/
 
 node.zip
 
-# Throwaway progress notes. docs/DEV-NOTES.md is the one that ships.
+# Throwaway progress notes. The real one is PROGRESS.md at the repo root and it IS tracked.
 docs/PROGRESS-*.md

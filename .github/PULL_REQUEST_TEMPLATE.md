@@ -30,4 +30,4 @@
 - [ ] 同步了 README / CHANGELOG
 - [ ] 没引入新的警告或报错
 
-> 约定细节见 [`docs/DEV-NOTES.md`](docs/DEV-NOTES.md)。
+> 约定细节见 [`PROGRESS.md`](PROGRESS.md)。

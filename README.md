@@ -12,7 +12,7 @@
 
 **界面为中文，定位是上游节点的中文优化版。**
 
-> 想直接用 → 往下看「安装」「使用」；想改代码 → [`docs/DEV-NOTES.md`](docs/DEV-NOTES.md)。
+> 想直接用 → 往下看「安装」「使用」；想改代码 → [`PROGRESS.md`](PROGRESS.md)。
 
 ---
 
@@ -78,7 +78,7 @@
 
 ### 网络适应：多源测速选优
 
-国内直连 HuggingFace 不稳，这一层做了四件事（实现细节见 [`docs/DEV-NOTES.md`](docs/DEV-NOTES.md)）：
+国内直连 HuggingFace 不稳，这一层做了四件事（实现细节见 [`PROGRESS.md`](PROGRESS.md)）：
 
 | 能力 | 说明 |
 |---|---|
@@ -211,7 +211,7 @@ Checkpoints（SD1.5 / SDXL / SD3 / Flux）、Diffusion Models（Wan / LTX / Huny
 | 想看什么 | 去哪 |
 |---|---|
 | 每个版本改了什么 | [`CHANGELOG.md`](CHANGELOG.md) |
-| 自己改这个插件 | [`docs/DEV-NOTES.md`](docs/DEV-NOTES.md)（架构地图、硬性约定、踩坑清单、怎么验证） |
+| 自己改这个插件 | [`PROGRESS.md`](PROGRESS.md)（架构地图、硬性约定、踩坑清单、怎么验证） |
 | 参与贡献 | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 
 ## 致谢与许可

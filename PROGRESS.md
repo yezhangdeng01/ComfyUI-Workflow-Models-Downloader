@@ -1,7 +1,10 @@
-# 开发笔记
+# 进度与开发笔记
 
-> 面向要改这个插件的人。用户向文档见 [README.md](../README.md)，版本记录见 [CHANGELOG.md](../CHANGELOG.md)。
+> 面向要改这个插件的人。用户向文档见 [README.md](README.md)，版本记录见 [CHANGELOG.md](CHANGELOG.md)。
 > 本文件合并自 2026-10-19 ~ 10-23 的四份 `PROGRESS-*.md`，只保留**现在仍然成立**的部分：过程性的逐条 patch 清单、临时脚本路径、当时的网速数字都已删掉。
+>
+> **改完请立刻 commit。** ComfyUI-Manager 更新节点时会对脏工作区先 `git stash` 再 `git pull --ff-only`，
+> 快进失败还会 `git reset --hard`；未提交的改动会从工作区消失（stash 里还在，但不会自动恢复）。
 
 ---
 
@@ -95,10 +98,10 @@ wmd = importlib.util.module_from_spec(spec); spec.loader.exec_module(wmd)
 - **2026-10-19 夜**：无限重试 + 零进展看护；`resolve_model_directory()` 成为目录判定的唯一真相源（此前扫描猜 `checkpoints`、下载被精选源强制到 `diffusion_models`，文件落了却永远显示"未下载"）；`_find_file_by_basename()` 做全局兜底。
 - **2026-10-20**：全中文化（界面/提示/帮助/设置/`pyproject.toml` 的 DisplayName）；📂 按钮从"操作列里漂移"挪到保存目录列固定位置；Shell API 前台弹窗修复。
 - **2026-10-22**：体积列（本地读 header + 后台 HEAD 探测）、类型徽章跟随节点、`applyModelToGraph()` 让"使用该版本"真正换节点、同名变体识别（徽章 + 改图/改名两条路）、📂 恢复为每行都有。
-- **2026-10-23**：文档整理（四份进度合并为本文件，CHANGELOG 中英合并，CONTRIBUTING 重写为中文）。
+- **2026-10-23**：文档整理（四份进度合并为本文件，CHANGELOG 中英合并，CONTRIBUTING 重写为中文）；本文件由 `docs/DEV-NOTES.md` 改名为根目录 `PROGRESS.md`。
 
 ## 七、已知遗留
 
 - 表格 7 列后在 1080px 弹窗里偏挤，超长文件名会换 3 行。没动弹窗宽度策略，觉得难看再说。
-- 旧的 `docs/PROGRESS-*.md` 流水账已合并进本文件（`.gitignore` 仍忽略这个命名，新写的临时进度别再进仓库）。
+- 旧的 `docs/PROGRESS-*.md` 流水账已合并进本文件（`.gitignore` 仍忽略 `docs/PROGRESS-*.md` 这个命名，新写的临时流水别再进仓库；根目录这份 `PROGRESS.md` 是正式文档，入库）。
 - `metadata/custom-node-list.json`、`extension-node-map.json` 是运行时节点数据库，**不是文档，别删**。
