@@ -5,6 +5,7 @@ __pycache__/
 .Python
 .env
 .venv
+venv/
 *.egg-info/
 dist/
 build/
@@ -16,38 +17,29 @@ Thumbs.db
 # Settings file containing API keys
 settings.json
 
-# Data files (2 master databases + 1 history)
-model_metadata.json      # Master 1: Single source of truth for models
-node_metadata.json       # Master 2: Single source of truth for nodes
-download_history.json    # Download history for UI
+# Data files: 2 master databases + 1 history.
+# NOTE: no trailing comments on these lines - gitignore reads a whole line as
+# one pattern, so "model_metadata.json  # Master 1" would never match the file.
+model_metadata.json
+node_metadata.json
+download_history.json
+usage_cache.json
 
-# Deprecated data files (kept for backwards compatibility)
-search_cache.json        # DEPRECATED - merged into model_metadata.json
-user_model_urls.json     # DEPRECATED - merged into model_metadata.json
-usage_cache.json         # DEPRECATED - feature removed
+# Deprecated data files, kept for backwards compatibility
+search_cache.json
+user_model_urls.json
 
-# HF candidate lookup cache (regenerated on demand, machine-local)
+# Machine-local cache, regenerated on demand
 hf_candidate_cache.json
 
+# Logs
+wmd.log
+wmd.log.*
+
 # Local safety backups
-_backup_*/
 _backup_*/
 
 node.zip
 
-# Log files
-wmd.log
-wmd.log.*
-
-venv/
-.venv/
-
-# Internal development progress notes (local only)
-docs/
-
-# runtime caches
-download_history.json
-model_metadata.json
-usage_cache.json
-hf_candidate_cache.json
-wmd.log
+# Throwaway progress notes. docs/DEV-NOTES.md is the one that ships.
+docs/PROGRESS-*.md
