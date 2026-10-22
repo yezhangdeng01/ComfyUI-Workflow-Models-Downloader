@@ -1,6 +1,9 @@
 # 进度与开发笔记
 
 > 面向要改这个插件的人。用户向文档见 [README.md](README.md)，版本记录见 [CHANGELOG.md](CHANGELOG.md)。
+> **这份代码有两处**：开发库 `E:\Docs\workbuddy\ComfyUI-Workflow-Models-Downloader`（真源，带 git 历史），
+> 插件目录 `E:\AI\ComfyUI-aki-v3.2\ComfyUI\custom_nodes\ComfyUI-Workflow-Models-Downloader`（ComfyUI 实机加载的运行副本）。
+> 改完跑 `python deploy.py` 同步过去，流程见 [DEPLOY.md](DEPLOY.md)。
 > 本文件合并自 2026-10-19 ~ 10-23 的四份 `PROGRESS-*.md`，只保留**现在仍然成立**的部分：过程性的逐条 patch 清单、临时脚本路径、当时的网速数字都已删掉。
 >
 > **改完请立刻 commit。** ComfyUI-Manager 更新节点时会对脏工作区先 `git stash` 再 `git pull --ff-only`，
